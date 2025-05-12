@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dhnikolas/state-manager/internal/dto"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -125,15 +126,46 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.Res
 	return res, nil
 }
 
-func (r *PostgresResourceRepo) ListPending(ctx context.Context, shardIDs []string) ([]*dto.Resource, error) {
-	// Первый запрос: получаем все ресурсы
-	const resourceQuery = `
-        SELECT id, shard_id, resource_group, kind, namespace, name, 
-               created_at, updated_at, body, version, current_version 
-        FROM resources 
-        WHERE shard_id = ANY($1) AND version > current_version
-    `
-	rows, err := r.pool.Query(ctx, resourceQuery, shardIDs)
+func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.ListResourcesOpts) ([]*dto.Resource, error) {
+	sql := sqlbuilder.Select(
+		"id",
+		"shard_id",
+		"resource_group",
+		"kind",
+		"namespace",
+		"name",
+		"created_at",
+		"updated_at",
+		"body",
+		"version",
+		"current_version",
+	).From("resources")
+	sql.SetFlavor(sqlbuilder.PostgreSQL)
+	if listOpts.ResourceGroup != "" {
+		sql.Where(sql.E("resource_group", listOpts.ResourceGroup))
+	}
+	if listOpts.Kind != "" {
+		sql.Where(sql.E("kind", listOpts.Kind))
+	}
+	if listOpts.Namespace != "" {
+		sql.Where(sql.E("namespace", listOpts.Namespace))
+	}
+	if listOpts.Name != "" {
+		sql.Where(sql.E("name", listOpts.Name))
+	}
+	if len(listOpts.ShardID) > 0 {
+		sql.Where(sql.In("shard_id", listOpts.ShardID))
+	}
+	if listOpts.Pending {
+		sql.Where(sql.And("version > current_version"))
+	}
+
+	sql.Limit(listOpts.Limit)
+	sql.Offset(listOpts.Offset)
+
+	sqlQuery, args := sql.Build()
+
+	rows, err := r.pool.Query(ctx, sqlQuery, args...)
 	if err != nil {
 		return nil, err
 	}

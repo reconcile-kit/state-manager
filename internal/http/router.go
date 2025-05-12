@@ -30,12 +30,12 @@ func NewRouter(service *states.StateService) *chi.Mux {
 	// Группа маршрутов API
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/resources", func(r chi.Router) {
+			r.Get("/", handler.listResources)
+		})
+		r.Route("/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources", func(r chi.Router) {
 			r.Post("/", handler.createResource)
-			r.Get("/pending", handler.listPending)
-			r.Route("/{resource_group}/{kind}/{namespace}/{name}", func(r chi.Router) {
-				r.Get("/", handler.getResource)
-				r.Put("/", handler.updateResource)
-			})
+			r.Get("/{name}", handler.getResource)
+			r.Put("/{name}", handler.updateResource)
 		})
 	})
 

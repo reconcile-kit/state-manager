@@ -14,7 +14,7 @@ type ResourceRepository interface {
 	Update(ctx context.Context, tx pgx.Tx, opts dto.ResourceUpdateOpts) (*dto.Resource, error)
 	Delete(ctx context.Context, tx pgx.Tx, id int64) error
 	GetByResourceID(ctx context.Context, opts dto.ResourceID) (*dto.Resource, error)
-	ListPending(ctx context.Context, shardIDs []string) ([]*dto.Resource, error)
+	ListResources(ctx context.Context, listOpts dto.ListResourcesOpts) ([]*dto.Resource, error)
 }
 
 type StateService struct {

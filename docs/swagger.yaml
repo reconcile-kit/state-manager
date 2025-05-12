@@ -88,12 +88,27 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/v1/resources:
+  /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources:
     post:
       consumes:
       - application/json
       description: Creates a new resource with the provided details.
       parameters:
+      - description: Resource Group
+        in: path
+        name: resource_group
+        required: true
+        type: string
+      - description: Kind
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
       - description: Resource details
         in: body
         name: resource
@@ -134,7 +149,7 @@ paths:
       summary: Create a new resource
       tags:
       - resources
-  /api/v1/resources/{resource_group}/{kind}/{namespace}/{name}:
+  /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}:
     get:
       consumes:
       - application/json
@@ -254,17 +269,35 @@ paths:
       summary: Update a resource
       tags:
       - resources
-  /api/v1/resources/pending:
+  /api/v1/resources:
     get:
       consumes:
       - application/json
-      description: Lists resources where version > current_version for given shard
-        IDs.
+      description: возвращает ресурсы по фильтру
       parameters:
-      - description: Comma-separated list of shard IDs
-        in: query
-        name: shard_ids
-        required: true
+      - in: query
+        name: kind
+        type: string
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: namespace
+        type: string
+      - in: query
+        name: offset
+        type: integer
+      - in: query
+        name: pending
+        type: boolean
+      - in: query
+        name: resource_group
+        type: string
+      - in: query
+        name: shard_id
         type: string
       produces:
       - application/json

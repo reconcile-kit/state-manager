@@ -5,7 +5,7 @@ import (
 	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/go-chi/chi/v5"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
 // getResource получает ресурс по ключу
@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} dto.Resource{body=map[string]string} "Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: resource_group is required"}
 // @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
-// @Router /api/v1/resources/{resource_group}/{kind}/{namespace}/{name} [get]
+// @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [get]
 func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	opts := dto.ResourceID{
 		ResourceGroup: chi.URLParam(r, "resource_group"),
@@ -46,34 +46,39 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resource)
 }
 
-// listPending возвращает ресурсы с version > current_version
+// listResources возвращает ресурсы по фильтру
 // @Summary List pending resources
-// @Description Lists resources where version > current_version for given shard IDs.
+// @Description возвращает ресурсы по фильтру
 // @Tags resources
 // @Accept json
 // @Produce json
-// @Param shard_ids query string true "Comma-separated list of shard IDs" example="default,shard2"
+// @Param filter query dto.ListResourcesOpts true "Kind" example="type1"
 // @Success 200 {array} dto.Resource{body=map[string]string} "List of pending resources"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"shard_ids is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to list pending resources: database error"}
-// @Router /api/v1/resources/pending [get]
-func (h *Handler) listPending(w http.ResponseWriter, r *http.Request) {
-	shardIDsStr := r.URL.Query().Get("shard_ids")
-	if shardIDsStr == "" {
-		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: shard_ids is required"}`), http.StatusBadRequest)
-		return
+// @Router /api/v1/resources [get]
+func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
+
+	pending, _ := strconv.ParseBool(r.URL.Query().Get("pending"))
+	limit, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if limit == 0 {
+		limit = 500
+	}
+	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	listOpts := dto.ListResourcesOpts{
+		ResourceID: dto.ResourceID{
+			ResourceGroup: r.URL.Query().Get("resource_group"),
+			Kind:          r.URL.Query().Get("kind"),
+			Namespace:     r.URL.Query().Get("namespace"),
+			Name:          r.URL.Query().Get("name"),
+		},
+		ShardID: r.URL.Query().Get("shard_id"),
+		Pending: pending,
+		Limit:   int(limit),
+		Offset:  int(offset),
 	}
 
-	shardIDs := strings.Split(shardIDsStr, ",")
-	for i, id := range shardIDs {
-		shardIDs[i] = strings.TrimSpace(id)
-		if shardIDs[i] == "" {
-			http.Error(w, fmt.Sprintf(`{"error":"Validation failed: invalid shard_id"}`), http.StatusBadRequest)
-			return
-		}
-	}
-
-	resources, err := h.service.ListPending(r.Context(), shardIDs)
+	resources, err := h.service.ListPending(r.Context(), listOpts)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resources: %h"}`, err), http.StatusInternalServerError)
 		return

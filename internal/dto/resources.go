@@ -37,3 +37,12 @@ type ResourceID struct {
 	Namespace     string `json:"namespace"`
 	Name          string `json:"name"`
 }
+
+type ListResourcesOpts struct {
+	ResourceID
+	ShardID string `json:"shard_id"`
+	Pending bool   `json:"pending"`
+
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+}

@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} dto.Resource{body=map[string]string} "Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
-// @Router /api/v1/resources/{resource_group}/{kind}/{namespace}/{name} [put]
+// @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [put]
 func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 	var req dto.ResourceUpdateOpts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

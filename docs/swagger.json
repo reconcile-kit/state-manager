@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/api/v1/resources": {
+        "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources": {
             "post": {
                 "description": "Creates a new resource with the provided details.",
                 "consumes": [
@@ -18,6 +18,27 @@
                 ],
                 "summary": "Create a new resource",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Group",
+                        "name": "resource_group",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Resource details",
                         "name": "resource",
@@ -80,69 +101,7 @@
                 }
             }
         },
-        "/api/v1/resources/pending": {
-            "get": {
-                "description": "Lists resources where version \u003e current_version for given shard IDs.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "resources"
-                ],
-                "summary": "List pending resources",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of shard IDs",
-                        "name": "shard_ids",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of pending resources",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/dto.Resource"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "body": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input\" example={\"error\":\"shard_ids is required\"}",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error\" example={\"error\":\"Failed to list pending resources: database error\"}",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/resources/{resource_group}/{kind}/{namespace}/{name}": {
+        "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}": {
             "get": {
                 "description": "Retrieves a resource by its resource_group, kind, namespace, and name.",
                 "consumes": [
@@ -320,6 +279,101 @@
                     },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to update resource: database error\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/resources": {
+            "get": {
+                "description": "возвращает ресурсы по фильтру",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "List pending resources",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "kind",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "pending",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "resource_group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "shard_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of pending resources",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/dto.Resource"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "body": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input\" example={\"error\":\"shard_ids is required\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error\" example={\"error\":\"Failed to list pending resources: database error\"}",
                         "schema": {
                             "$ref": "#/definitions/http.ErrorResponse"
                         }

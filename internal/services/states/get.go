@@ -9,6 +9,6 @@ func (s *StateService) GetByKey(ctx context.Context, opts dto.ResourceID) (*dto.
 	return s.repo.GetByResourceID(ctx, opts)
 }
 
-func (s *StateService) ListPending(ctx context.Context, shardIDs []string) ([]*dto.Resource, error) {
-	return s.repo.ListPending(ctx, shardIDs)
+func (s *StateService) ListPending(ctx context.Context, opts dto.ListResourcesOpts) ([]*dto.Resource, error) {
+	return s.repo.ListResources(ctx, opts)
 }
