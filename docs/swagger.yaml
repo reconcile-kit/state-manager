@@ -1,0 +1,297 @@
+definitions:
+  dto.Resource:
+    properties:
+      body:
+        items:
+          type: integer
+        type: array
+      created_at:
+        type: string
+      current_version:
+        type: integer
+      kind:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      namespace:
+        type: string
+      resource_group:
+        type: string
+      shard_id:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    required:
+    - shard_id
+    type: object
+  dto.ResourceCreateOpts:
+    properties:
+      body:
+        items:
+          type: integer
+        type: array
+      kind:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      namespace:
+        type: string
+      resource_group:
+        type: string
+      shard_id:
+        type: string
+    required:
+    - shard_id
+    type: object
+  dto.ResourceUpdateOpts:
+    properties:
+      body:
+        items:
+          type: integer
+        type: array
+      current_version:
+        type: integer
+      kind:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      namespace:
+        type: string
+      resource_group:
+        type: string
+      shard_id:
+        type: string
+      without_up_version:
+        type: boolean
+    required:
+    - shard_id
+    type: object
+  http.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/resources:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new resource with the provided details.
+      parameters:
+      - description: Resource details
+        in: body
+        name: resource
+        required: true
+        schema:
+          allOf:
+          - $ref: '#/definitions/dto.ResourceCreateOpts'
+          - properties:
+              body:
+                additionalProperties:
+                  type: string
+                type: object
+            type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource created" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                body:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: 'Invalid input" example={"error":"Validation failed: shard_id
+            is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "500":
+          description: 'Server error" example={"error":"Failed to create resource:
+            database error"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: Create a new resource
+      tags:
+      - resources
+  /api/v1/resources/{resource_group}/{kind}/{namespace}/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a resource by its resource_group, kind, namespace, and
+        name.
+      parameters:
+      - description: Resource Group
+        in: path
+        name: resource_group
+        required: true
+        type: string
+      - description: Kind
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                body:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: 'Invalid input" example={"error":"Validation failed: resource_group
+            is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "404":
+          description: 'Not found" example={"error":"Resource not found: no rows"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: Get a resource by key
+      tags:
+      - resources
+    put:
+      consumes:
+      - application/json
+      description: Updates a resource with the provided details.
+      parameters:
+      - description: Resource Group
+        in: path
+        name: resource_group
+        required: true
+        type: string
+      - description: Kind
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Resource details
+        in: body
+        name: resource
+        required: true
+        schema:
+          allOf:
+          - $ref: '#/definitions/dto.ResourceUpdateOpts'
+          - properties:
+              body:
+                additionalProperties:
+                  additionalProperties:
+                    type: string
+                  type: object
+                type: object
+            type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                body:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: 'Invalid input" example={"error":"Validation failed: shard_id
+            is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "500":
+          description: 'Server error" example={"error":"Failed to update resource:
+            database error"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: Update a resource
+      tags:
+      - resources
+  /api/v1/resources/pending:
+    get:
+      consumes:
+      - application/json
+      description: Lists resources where version > current_version for given shard
+        IDs.
+      parameters:
+      - description: Comma-separated list of shard IDs
+        in: query
+        name: shard_ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of pending resources
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/dto.Resource'
+              - properties:
+                  body:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
+            type: array
+        "400":
+          description: Invalid input" example={"error":"shard_ids is required"}
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "500":
+          description: 'Server error" example={"error":"Failed to list pending resources:
+            database error"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: List pending resources
+      tags:
+      - resources
+swagger: "2.0"

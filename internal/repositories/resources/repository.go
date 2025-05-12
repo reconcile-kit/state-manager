@@ -1,0 +1,198 @@
+package resources
+
+import (
+	"context"
+	"fmt"
+	"github.com/dhnikolas/state-manager/internal/dto"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type PostgresResourceRepo struct {
+	pool *pgxpool.Pool
+}
+
+func NewResourceRepository(pool *pgxpool.Pool) *PostgresResourceRepo {
+	return &PostgresResourceRepo{pool: pool}
+}
+
+func (r *PostgresResourceRepo) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return r.pool.Begin(ctx)
+}
+
+func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts dto.ResourceCreateOpts) (*dto.Resource, error) {
+	err := validateResourceID(opts.ResourceID)
+	if err != nil {
+		return nil, err
+	}
+	res := &dto.Resource{}
+	res.ResourceFields = opts.ResourceFields
+	const q = `INSERT INTO resources (shard_id, resource_group, kind, namespace, name, body) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, created_at, updated_at, shard_id, version`
+
+	row := tx.QueryRow(ctx, q,
+		opts.ShardID,
+		opts.ResourceGroup,
+		opts.Kind,
+		opts.Namespace,
+		opts.Name,
+		opts.Body,
+	)
+	if err := row.Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.ShardID, &res.Version); err != nil {
+		return nil, err
+	}
+	for name, value := range opts.Labels {
+		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
+		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts dto.ResourceUpdateOpts) (*dto.Resource, error) {
+	err := validateResourceID(opts.ResourceID)
+	if err != nil {
+		return nil, err
+	}
+	const q = `UPDATE resources SET shard_id=$1, body=$2, version=version+$3, current_version=$4, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version`
+	res := &dto.Resource{}
+	res.ResourceFields = opts.ResourceFields
+	incrementVersion := 1
+	if opts.WithoutUpVersion {
+		incrementVersion = 0
+	}
+	row := tx.QueryRow(ctx, q,
+		opts.ShardID, opts.Body, incrementVersion, opts.CurrentVersion, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
+	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version); err != nil {
+		return nil, err
+	}
+
+	// delete old labels
+	if _, err := tx.Exec(ctx, `DELETE FROM labels WHERE resource_id=$1`, res.ID); err != nil {
+		return nil, err
+	}
+	// insert new labels
+	for name, value := range opts.Labels {
+		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
+		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (r *PostgresResourceRepo) Delete(ctx context.Context, tx pgx.Tx, id int64) error {
+	_, err := tx.Exec(ctx, `DELETE FROM resources WHERE id=$1`, id)
+	return err
+}
+
+func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.ResourceID) (*dto.Resource, error) {
+	err := validateResourceID(opts)
+	if err != nil {
+		return nil, err
+	}
+	const q = `SELECT id, shard_id, created_at, updated_at, body, version, current_version FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
+	res := &dto.Resource{}
+	row := r.pool.QueryRow(ctx, q, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
+	if err := row.Scan(
+		&res.ID,
+		&res.ShardID,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+		&res.Body,
+		&res.Version,
+		&res.CurrentVersion,
+	); err != nil {
+		return nil, err
+	}
+	res.Kind = opts.Kind
+	res.Namespace = opts.Namespace
+	res.Name = opts.Name
+	res.Labels = make(map[string]string)
+	rows, err := r.pool.Query(ctx, `SELECT name, value FROM labels WHERE resource_id=$1`, res.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var name, value string
+		err = rows.Scan(&name, &value)
+		if err != nil {
+			return nil, err
+		}
+		res.Labels[name] = value
+	}
+	return res, nil
+}
+
+func (r *PostgresResourceRepo) ListPending(ctx context.Context, shardIDs []string) ([]*dto.Resource, error) {
+	// Первый запрос: получаем все ресурсы
+	const resourceQuery = `
+        SELECT id, shard_id, resource_group, kind, namespace, name, 
+               created_at, updated_at, body, version, current_version 
+        FROM resources 
+        WHERE shard_id = ANY($1) AND version > current_version
+    `
+	rows, err := r.pool.Query(ctx, resourceQuery, shardIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	resources := []*dto.Resource{}
+	resourceIDMap := make(map[int]*dto.Resource) // Для маппинга ID -> ResourceDTO
+	var resourceIDs []int                        // Для сбора ID ресурсов
+
+	for rows.Next() {
+		res := &dto.Resource{}
+		if err := rows.Scan(
+			&res.ID, &res.ShardID, &res.ResourceGroup,
+			&res.Kind, &res.Namespace, &res.Name,
+			&res.CreatedAt, &res.UpdatedAt,
+			&res.Body, &res.Version, &res.CurrentVersion,
+		); err != nil {
+			return nil, err
+		}
+		res.Labels = make(map[string]string) // Инициализируем пустой map для меток
+		resources = append(resources, res)
+		resourceIDMap[res.ID] = res
+		resourceIDs = append(resourceIDs, res.ID)
+	}
+
+	if len(resourceIDs) == 0 {
+		return resources, nil // Если ресурсов нет, возвращаем пустой список
+	}
+
+	// Второй запрос: получаем все метки для найденных ресурсов
+	const labelQuery = `
+        SELECT resource_id, name, value 
+        FROM labels 
+        WHERE resource_id = ANY($1)
+    `
+	labelRows, err := r.pool.Query(ctx, labelQuery, resourceIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer labelRows.Close()
+
+	// Маппинг меток к ресурсам
+	for labelRows.Next() {
+		var resourceID int
+		var name, value string
+		if err := labelRows.Scan(&resourceID, &name, &value); err != nil {
+			return nil, err
+		}
+		if resource, exists := resourceIDMap[resourceID]; exists {
+			resource.Labels[name] = value
+		}
+	}
+
+	return resources, nil
+}
+
+func validateResourceID(ID dto.ResourceID) error {
+	if ID.ResourceGroup == "" || ID.Kind == "" || ID.Namespace == "" || ID.Name == "" {
+		return fmt.Errorf("resource group, kind and namespace must be set")
+	}
+	return nil
+}
