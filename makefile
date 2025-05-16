@@ -1,6 +1,6 @@
-.PHONY: all swagger openapi-client
+.PHONY: api
 
-all: gen-swagger openapi-client
+api: gen-swagger openapi-client
 
 gen-swagger:
 	docker run --rm \
