@@ -294,6 +294,66 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Retrieves a resource by its resource_group, kind, namespace, and name.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Get a resource by key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Group",
+                        "name": "resource_group",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid input\" example={\"error\":\"Deletion failed: resource_group is required\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status": {
@@ -520,6 +580,15 @@ const docTemplate = `{
                 "current_version": {
                     "type": "integer"
                 },
+                "deletion_timestamp": {
+                    "type": "string"
+                },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "kind": {
                     "type": "string"
                 },
@@ -571,6 +640,12 @@ const docTemplate = `{
                 "annotations": {
                     "type": "object",
                     "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 },

@@ -15,19 +15,21 @@ type ResourceID struct {
 type ResourceFields struct {
 	ResourceID  `json:",inline"`
 	ShardID     string            `json:"shard_id" validate:"required"`
+	Finalizers  []string          `json:"finalizers"`
 	Labels      map[string]string `json:"labels"`
 	Annotations map[string]string `json:"annotations"`
 }
 
 type Resource struct {
-	ResourceFields `json:",inline"`
-	ID             int             `json:"-"`
-	CreatedAt      time.Time       `json:"created_at"`
-	UpdatedAt      time.Time       `json:"updated_at"`
-	Version        int             `json:"version"`
-	CurrentVersion int             `json:"current_version"`
-	Spec           json.RawMessage `json:"spec"`
-	Status         json.RawMessage `json:"status"`
+	ResourceFields    `json:",inline"`
+	ID                int             `json:"-"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+	DeletionTimestamp *time.Time      `json:"deletion_timestamp"`
+	Version           int             `json:"version"`
+	CurrentVersion    int             `json:"current_version"`
+	Spec              json.RawMessage `json:"spec"`
+	Status            json.RawMessage `json:"status"`
 }
 
 type ResourceCreateOpts struct {

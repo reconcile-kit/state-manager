@@ -11,6 +11,7 @@ import (
 type CreateResourceRequest struct {
 	ShardID     string            `json:"shard_id" validate:"required"`
 	Labels      map[string]string `json:"labels"`
+	Finalizers  []string          `json:"finalizers"`
 	Annotations map[string]string `json:"annotations"`
 	Name        string            `json:"name" validate:"required"`
 	Spec        json.RawMessage   `json:"spec"`
@@ -51,6 +52,7 @@ func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 			},
 			ShardID:     req.ShardID,
 			Labels:      req.Labels,
+			Finalizers:  req.Finalizers,
 			Annotations: req.Annotations,
 		},
 		Spec: req.Spec,

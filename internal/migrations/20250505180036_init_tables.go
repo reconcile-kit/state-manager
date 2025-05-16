@@ -21,6 +21,8 @@ func upCreateResourcesTables(ctx context.Context, tx *sql.Tx) error {
 			name VARCHAR(255) NOT NULL,
 			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			deletion_timestamp TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+			finalizers JSONB,    
 			annotations JSONB,    
 			spec JSONB,
 			status JSONB,    

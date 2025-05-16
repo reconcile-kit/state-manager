@@ -38,6 +38,7 @@ func NewRouter(service *states.StateService) *chi.Mux {
 			r.Post("/", handler.createResource)
 			r.Get("/{name}", handler.getResource)
 			r.Put("/{name}", handler.updateResource)
+			r.Delete("/{name}", handler.deleteResource)
 			r.Put("/{name}/status", handler.updateResourceStatus)
 		})
 	})

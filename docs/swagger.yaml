@@ -9,6 +9,12 @@ definitions:
         type: string
       current_version:
         type: integer
+      deletion_timestamp:
+        type: string
+      finalizers:
+        items:
+          type: string
+        type: array
       kind:
         type: string
       labels:
@@ -44,6 +50,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      finalizers:
+        items:
+          type: string
+        type: array
       labels:
         additionalProperties:
           type: string
@@ -173,6 +183,49 @@ paths:
       tags:
       - resources
   /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Retrieves a resource by its resource_group, kind, namespace, and
+        name.
+      parameters:
+      - description: Resource Group
+        in: path
+        name: resource_group
+        required: true
+        type: string
+      - description: Kind
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: 'Invalid input" example={"error":"Deletion failed: resource_group
+            is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "404":
+          description: 'Not found" example={"error":"Resource not found: no rows"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: Get a resource by key
+      tags:
+      - resources
     get:
       consumes:
       - application/json
