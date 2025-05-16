@@ -16,8 +16,6 @@ docs/ResourcesAPI.md
 docs/UpdateResourceRequest.md
 docs/UpdateResourceStatusRequest.md
 git_push.sh
-go.mod
-go.sum
 model_create_resource_200_response.go
 model_create_resource_request.go
 model_github_com_dhnikolas_state_manager_internal_dto_resource.go

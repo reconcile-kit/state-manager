@@ -20,4 +20,6 @@ openapi-client:
 	    --skip-validate-spec \
 	    -g go \
 	    -o /src/pkg/stateclient \
+	    --package-name stateclient \
+	    --additional-properties=withGoMod=false \
 
