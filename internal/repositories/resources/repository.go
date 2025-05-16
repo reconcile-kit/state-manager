@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/huandu/go-sqlbuilder"
@@ -189,6 +190,9 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts *dto.Re
 		&res.Version,
 		&res.CurrentVersion,
 	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, dto.NotFoundError
+		}
 		return nil, err
 	}
 	res.Labels = make(map[string]string)

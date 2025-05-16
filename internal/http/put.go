@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dhnikolas/state-manager/internal/dto"
-	"github.com/dhnikolas/state-manager/internal/services/states"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -124,11 +123,11 @@ func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.UpdateStatus(r.Context(), resourceUpdateStatusOpts)
 	if err != nil {
-		if errors.Is(err, states.ConflictError) {
+		if errors.Is(err, dto.ConflictError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Version conflict: %s"}`, err), http.StatusConflict)
 			return
 		}
-		if errors.Is(err, states.UnavailableVersion) {
+		if errors.Is(err, dto.UnavailableVersionError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Current version unavailable: %s"}`, err), http.StatusBadRequest)
 			return
 		}

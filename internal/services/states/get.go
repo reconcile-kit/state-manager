@@ -5,7 +5,7 @@ import (
 	"github.com/dhnikolas/state-manager/internal/dto"
 )
 
-func (s *StateService) GetByKey(ctx context.Context, opts *dto.ResourceID) (*dto.Resource, error) {
+func (s *StateService) GetByResourceID(ctx context.Context, opts *dto.ResourceID) (*dto.Resource, error) {
 	return s.repo.GetByResourceID(ctx, opts)
 }
 

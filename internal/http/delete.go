@@ -8,8 +8,8 @@ import (
 )
 
 // getResource получает ресурс по ключу
-// @Summary Get a resource by key
-// @Description Retrieves a resource by its resource_group, kind, namespace, and name.
+// @Summary Delete a resource
+// @Description Delete a resource by its resource_group, kind, namespace, and name.
 // @Tags resources
 // @Accept json
 // @Produce json

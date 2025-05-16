@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/go-chi/chi/v5"
@@ -35,8 +36,12 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resource, err := h.service.GetByKey(r.Context(), opts)
+	resource, err := h.service.GetByResourceID(r.Context(), opts)
 	if err != nil {
+		if errors.Is(err, dto.NotFoundError) {
+			http.Error(w, fmt.Sprintf(`{"error":"Resource not found: %s"}`, opts.Name), http.StatusNotFound)
+			return
+		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}

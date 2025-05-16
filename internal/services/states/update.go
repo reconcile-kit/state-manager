@@ -2,13 +2,9 @@ package states
 
 import (
 	"context"
-	"errors"
 	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/jackc/pgx/v5"
 )
-
-var ConflictError = errors.New("resource version not match")
-var UnavailableVersion = errors.New("current version unavailable: current_version > version")
 
 func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts) (*dto.Resource, error) {
 	return s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
@@ -35,9 +31,9 @@ func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdat
 		}
 		switch {
 		case currentResource.Version != opts.Version:
-			return nil, ConflictError
+			return nil, dto.ConflictError
 		case opts.CurrentVersion > currentResource.Version:
-			return nil, UnavailableVersion
+			return nil, dto.UnavailableVersionError
 		}
 
 		if currentResource.DeletionTimestamp != nil && len(opts.Finalizers) == 0 {
