@@ -18,7 +18,7 @@ import (
 // @Param kind path string true "Kind" example="type1"
 // @Param namespace path string true "Namespace" example="ns1"
 // @Param name path string true "Name" example="resource1"
-// @Success 200 {object} dto.Resource{body=map[string]string} "Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+// @Success 200 {object} dto.Resource{spec=map[string]interface{}} "Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: resource_group is required"}
 // @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [get]
@@ -31,13 +31,13 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.validator.Struct(&opts); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %h"}`, err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
 		return
 	}
 
 	resource, err := h.service.GetByKey(r.Context(), opts)
 	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resource: %h"}`, err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -53,7 +53,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param filter query dto.ListResourcesOpts true "Kind" example="type1"
-// @Success 200 {array} dto.Resource{body=map[string]string} "List of pending resources"
+// @Success 200 {array} dto.Resource{spec=map[string]interface{}} "List of pending resources"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"shard_ids is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to list pending resources: database error"}
 // @Router /api/v1/resources [get]
@@ -80,7 +80,7 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 
 	resources, err := h.service.ListPending(r.Context(), listOpts)
 	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resources: %h"}`, err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resources: %s"}`, err), http.StatusInternalServerError)
 		return
 	}
 

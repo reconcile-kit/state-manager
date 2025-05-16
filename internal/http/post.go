@@ -16,15 +16,15 @@ import (
 // @Param resource_group path string true "Resource Group" example="group1"
 // @Param kind path string true "Kind" example="type1"
 // @Param namespace path string true "Namespace" example="ns1"
-// @Param resource body dto.ResourceCreateOpts{body=map[string]string} true "Resource details" example={"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"}}
-// @Success 201 {object} dto.Resource{body=map[string]string} "Resource created" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+// @Param resource body dto.ResourceCreateOpts{spec=map[string]interface{}} true "Resource details" example={"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"}}
+// @Success 201 {object} dto.Resource{spec=map[string]interface{}} "Resource created" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to create resource: database error"}
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources [post]
 func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 	var req dto.ResourceCreateOpts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Invalid JSON: %h"}`, err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf(`{"error":"Invalid JSON: %s"}`, err), http.StatusBadRequest)
 		return
 	}
 	req.ResourceGroup = chi.URLParam(r, "resource_group")
@@ -32,13 +32,13 @@ func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 	req.Namespace = chi.URLParam(r, "namespace")
 
 	if err := h.validator.Struct(&req); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %h"}`, err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
 		return
 	}
 
 	resource, err := h.service.Create(r.Context(), req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Failed to create resource: %h"}`, err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"Failed to create resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}
 

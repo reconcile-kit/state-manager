@@ -63,11 +63,9 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "body": {
+                                        "spec": {
                                             "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
@@ -86,11 +84,9 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "body": {
+                                        "spec": {
                                             "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
@@ -166,11 +162,9 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "body": {
+                                        "spec": {
                                             "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
@@ -245,13 +239,10 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "body": {
+                                        "spec": {
                                             "type": "object",
                                             "additionalProperties": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "string"
-                                                }
+                                                "type": "string"
                                             }
                                         }
                                     }
@@ -264,22 +255,94 @@ const docTemplate = `{
                     "200": {
                         "description": "Resource updated\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"new_value\"},\"labels\":{\"env\":\"dev\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T01:00:00Z\",\"version\":2,\"current_version\":0}",
                         "schema": {
+                            "$ref": "#/definitions/dto.Resource"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input\" example={\"error\":\"Validation failed: shard_id is required\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error\" example={\"error\":\"Failed to update resource: database error\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status": {
+            "put": {
+                "description": "Updates a resource with the provided details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Update a resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Group",
+                        "name": "resource_group",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kind",
+                        "name": "kind",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resource details",
+                        "name": "resource",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/dto.ResourceUpdateStatusOpts"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "body": {
+                                        "status": {
                                             "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
                             ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resource updated\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"new_value\"},\"labels\":{\"env\":\"dev\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T01:00:00Z\",\"version\":2,\"current_version\":0}",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Resource"
                         }
                     },
                     "400": {
@@ -365,11 +428,9 @@ const docTemplate = `{
                                     {
                                         "type": "object",
                                         "properties": {
-                                            "body": {
+                                            "spec": {
                                                 "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "string"
-                                                }
+                                                "additionalProperties": true
                                             }
                                         }
                                     }
@@ -400,10 +461,10 @@ const docTemplate = `{
                 "shard_id"
             ],
             "properties": {
-                "body": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
                     }
                 },
                 "created_at": {
@@ -433,6 +494,18 @@ const docTemplate = `{
                 "shard_id": {
                     "type": "string"
                 },
+                "spec": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -447,10 +520,10 @@ const docTemplate = `{
                 "shard_id"
             ],
             "properties": {
-                "body": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
                     }
                 },
                 "kind": {
@@ -473,6 +546,12 @@ const docTemplate = `{
                 },
                 "shard_id": {
                     "type": "string"
+                },
+                "spec": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -482,10 +561,51 @@ const docTemplate = `{
                 "shard_id"
             ],
             "properties": {
-                "body": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "resource_group": {
+                    "type": "string"
+                },
+                "shard_id": {
+                    "type": "string"
+                },
+                "spec": {
                     "type": "array",
                     "items": {
                         "type": "integer"
+                    }
+                }
+            }
+        },
+        "dto.ResourceUpdateStatusOpts": {
+            "type": "object",
+            "required": [
+                "shard_id"
+            ],
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
                     }
                 },
                 "current_version": {
@@ -512,8 +632,14 @@ const docTemplate = `{
                 "shard_id": {
                     "type": "string"
                 },
-                "without_up_version": {
-                    "type": "boolean"
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },

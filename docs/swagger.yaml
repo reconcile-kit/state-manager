@@ -1,10 +1,10 @@
 definitions:
   dto.Resource:
     properties:
-      body:
-        items:
-          type: integer
-        type: array
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
       created_at:
         type: string
       current_version:
@@ -23,6 +23,14 @@ definitions:
         type: string
       shard_id:
         type: string
+      spec:
+        items:
+          type: integer
+        type: array
+      status:
+        items:
+          type: integer
+        type: array
       updated_at:
         type: string
       version:
@@ -32,10 +40,10 @@ definitions:
     type: object
   dto.ResourceCreateOpts:
     properties:
-      body:
-        items:
-          type: integer
-        type: array
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
       kind:
         type: string
       labels:
@@ -50,15 +58,46 @@ definitions:
         type: string
       shard_id:
         type: string
+      spec:
+        items:
+          type: integer
+        type: array
     required:
     - shard_id
     type: object
   dto.ResourceUpdateOpts:
     properties:
-      body:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      kind:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      namespace:
+        type: string
+      resource_group:
+        type: string
+      shard_id:
+        type: string
+      spec:
         items:
           type: integer
         type: array
+    required:
+    - shard_id
+    type: object
+  dto.ResourceUpdateStatusOpts:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
       current_version:
         type: integer
       kind:
@@ -75,8 +114,12 @@ definitions:
         type: string
       shard_id:
         type: string
-      without_up_version:
-        type: boolean
+      status:
+        items:
+          type: integer
+        type: array
+      version:
+        type: integer
     required:
     - shard_id
     type: object
@@ -117,9 +160,8 @@ paths:
           allOf:
           - $ref: '#/definitions/dto.ResourceCreateOpts'
           - properties:
-              body:
-                additionalProperties:
-                  type: string
+              spec:
+                additionalProperties: true
                 type: object
             type: object
       produces:
@@ -131,9 +173,8 @@ paths:
             allOf:
             - $ref: '#/definitions/dto.Resource'
             - properties:
-                body:
-                  additionalProperties:
-                    type: string
+                spec:
+                  additionalProperties: true
                   type: object
               type: object
         "400":
@@ -185,9 +226,8 @@ paths:
             allOf:
             - $ref: '#/definitions/dto.Resource'
             - properties:
-                body:
-                  additionalProperties:
-                    type: string
+                spec:
+                  additionalProperties: true
                   type: object
               type: object
         "400":
@@ -235,11 +275,9 @@ paths:
           allOf:
           - $ref: '#/definitions/dto.ResourceUpdateOpts'
           - properties:
-              body:
+              spec:
                 additionalProperties:
-                  additionalProperties:
-                    type: string
-                  type: object
+                  type: string
                 type: object
             type: object
       produces:
@@ -248,14 +286,65 @@ paths:
         "200":
           description: Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
           schema:
-            allOf:
-            - $ref: '#/definitions/dto.Resource'
-            - properties:
-                body:
-                  additionalProperties:
-                    type: string
-                  type: object
-              type: object
+            $ref: '#/definitions/dto.Resource'
+        "400":
+          description: 'Invalid input" example={"error":"Validation failed: shard_id
+            is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "500":
+          description: 'Server error" example={"error":"Failed to update resource:
+            database error"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+      summary: Update a resource
+      tags:
+      - resources
+  /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status:
+    put:
+      consumes:
+      - application/json
+      description: Updates a resource with the provided details.
+      parameters:
+      - description: Resource Group
+        in: path
+        name: resource_group
+        required: true
+        type: string
+      - description: Kind
+        in: path
+        name: kind
+        required: true
+        type: string
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Resource details
+        in: body
+        name: resource
+        required: true
+        schema:
+          allOf:
+          - $ref: '#/definitions/dto.ResourceUpdateStatusOpts'
+          - properties:
+              status:
+                additionalProperties: true
+                type: object
+            type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
+          schema:
+            $ref: '#/definitions/dto.Resource'
         "400":
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
@@ -309,9 +398,8 @@ paths:
               allOf:
               - $ref: '#/definitions/dto.Resource'
               - properties:
-                  body:
-                    additionalProperties:
-                      type: string
+                  spec:
+                    additionalProperties: true
                     type: object
                 type: object
             type: array

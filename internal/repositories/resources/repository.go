@@ -28,7 +28,9 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts dto.R
 	}
 	res := &dto.Resource{}
 	res.ResourceFields = opts.ResourceFields
-	const q = `INSERT INTO resources (shard_id, resource_group, kind, namespace, name, body) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, created_at, updated_at, shard_id, version`
+	res.Annotations = opts.Annotations
+	res.Spec = opts.Spec
+	const q = `INSERT INTO resources (shard_id, resource_group, kind, namespace, name, annotations, spec) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, created_at, updated_at, shard_id, version`
 
 	row := tx.QueryRow(ctx, q,
 		opts.ShardID,
@@ -36,7 +38,8 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts dto.R
 		opts.Kind,
 		opts.Namespace,
 		opts.Name,
-		opts.Body,
+		opts.Annotations,
+		opts.Spec,
 	)
 	if err := row.Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.ShardID, &res.Version); err != nil {
 		return nil, err
@@ -55,16 +58,44 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts dto.R
 	if err != nil {
 		return nil, err
 	}
-	const q = `UPDATE resources SET shard_id=$1, body=$2, version=version+$3, current_version=$4, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version`
+	const q = `UPDATE resources SET shard_id=$1, annotations=$2, spec=$3, version=version+1, updated_at=NOW() WHERE resource_group=$4 AND kind=$5 AND namespace=$6 AND name=$7 RETURNING created_at, updated_at, id, shard_id, version`
 	res := &dto.Resource{}
 	res.ResourceFields = opts.ResourceFields
-	incrementVersion := 1
-	if opts.WithoutUpVersion {
-		incrementVersion = 0
-	}
+	res.Spec = opts.Spec
+	res.Annotations = opts.Annotations
 	row := tx.QueryRow(ctx, q,
-		opts.ShardID, opts.Body, incrementVersion, opts.CurrentVersion, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
+		opts.ShardID, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version); err != nil {
+		return nil, err
+	}
+
+	// delete old labels
+	if _, err := tx.Exec(ctx, `DELETE FROM labels WHERE resource_id=$1`, res.ID); err != nil {
+		return nil, err
+	}
+	// insert new labels
+	for name, value := range opts.Labels {
+		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
+		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts dto.ResourceUpdateStatusOpts) (*dto.Resource, error) {
+	err := validateResourceID(opts.ResourceID)
+	if err != nil {
+		return nil, err
+	}
+	const q = `UPDATE resources SET shard_id=$1, annotations=$2, status=$3, current_version=$4, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version, current_version, spec`
+	res := &dto.Resource{}
+	res.ResourceFields = opts.ResourceFields
+	res.Annotations = opts.Annotations
+	res.Status = opts.Status
+	row := tx.QueryRow(ctx, q,
+		opts.ShardID, opts.Annotations, opts.Status, opts.CurrentVersion, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
+	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.Spec); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +123,7 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.Res
 	if err != nil {
 		return nil, err
 	}
-	const q = `SELECT id, shard_id, created_at, updated_at, body, version, current_version FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
+	const q = `SELECT id, shard_id, created_at, updated_at, spec, status, version, current_version FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
 	res := &dto.Resource{}
 	row := r.pool.QueryRow(ctx, q, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(
@@ -100,7 +131,8 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.Res
 		&res.ShardID,
 		&res.CreatedAt,
 		&res.UpdatedAt,
-		&res.Body,
+		&res.Spec,
+		&res.Status,
 		&res.Version,
 		&res.CurrentVersion,
 	); err != nil {
@@ -136,7 +168,9 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.L
 		"name",
 		"created_at",
 		"updated_at",
-		"body",
+		"annotations",
+		"spec",
+		"status",
 		"version",
 		"current_version",
 	).From("resources")
@@ -181,7 +215,7 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.L
 			&res.ID, &res.ShardID, &res.ResourceGroup,
 			&res.Kind, &res.Namespace, &res.Name,
 			&res.CreatedAt, &res.UpdatedAt,
-			&res.Body, &res.Version, &res.CurrentVersion,
+			&res.Annotations, &res.Spec, &res.Status, &res.Version, &res.CurrentVersion,
 		); err != nil {
 			return nil, err
 		}
