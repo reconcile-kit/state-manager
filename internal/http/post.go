@@ -20,6 +20,7 @@ type CreateResourceRequest struct {
 // createResource создаёт новый ресурс
 // @Summary Create a new resource
 // @Description Creates a new resource with the provided details.
+// @ID createResource
 // @Tags resources
 // @Accept json
 // @Produce json

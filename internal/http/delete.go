@@ -7,9 +7,10 @@ import (
 	"net/http"
 )
 
-// getResource получает ресурс по ключу
+// deleteResource получает ресурс по ключу
 // @Summary Delete a resource
 // @Description Delete a resource by its resource_group, kind, namespace, and name.
+// @ID deleteResource
 // @Tags resources
 // @Accept json
 // @Produce json

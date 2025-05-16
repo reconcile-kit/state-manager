@@ -19,6 +19,7 @@ type UpdateResourceRequest struct {
 // updateResource обновляет ресурс
 // @Summary Update a resource
 // @Description Updates a resource with the provided details.
+// @ID updateResource
 // @Tags resources
 // @Accept json
 // @Produce json
@@ -81,6 +82,7 @@ type UpdateResourceStatusRequest struct {
 // updateResource обновляет ресурс
 // @Summary Update a resource
 // @Description Updates a resource with the provided details.
+// @ID updateResourceStatus
 // @Tags resources
 // @Accept json
 // @Produce json

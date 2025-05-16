@@ -28,6 +28,7 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "Create a new resource",
+                "operationId": "createResource",
                 "parameters": [
                     {
                         "type": "string",
@@ -58,7 +59,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/http.CreateResourceRequest"
+                                    "$ref": "#/definitions/internal_http.CreateResourceRequest"
                                 },
                                 {
                                     "type": "object",
@@ -79,7 +80,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -100,13 +101,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Validation failed: shard_id is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to create resource: database error\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
@@ -125,6 +126,7 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "Get a resource by key",
+                "operationId": "getResource",
                 "parameters": [
                     {
                         "type": "string",
@@ -161,7 +163,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -182,13 +184,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Validation failed: resource_group is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
@@ -205,6 +207,7 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "Update a resource",
+                "operationId": "updateResource",
                 "parameters": [
                     {
                         "type": "string",
@@ -242,7 +245,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/http.UpdateResourceRequest"
+                                    "$ref": "#/definitions/internal_http.UpdateResourceRequest"
                                 },
                                 {
                                     "type": "object",
@@ -263,7 +266,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -284,19 +287,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Validation failed: shard_id is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to update resource: database error\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Retrieves a resource by its resource_group, kind, namespace, and name.",
+                "description": "Delete a resource by its resource_group, kind, namespace, and name.",
                 "consumes": [
                     "application/json"
                 ],
@@ -306,7 +309,8 @@ const docTemplate = `{
                 "tags": [
                     "resources"
                 ],
-                "summary": "Get a resource by key",
+                "summary": "Delete a resource",
+                "operationId": "deleteResource",
                 "parameters": [
                     {
                         "type": "string",
@@ -344,13 +348,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Deletion failed: resource_group is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
@@ -369,6 +373,7 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "Update a resource",
+                "operationId": "updateResourceStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -406,7 +411,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/http.UpdateResourceStatusRequest"
+                                    "$ref": "#/definitions/internal_http.UpdateResourceStatusRequest"
                                 },
                                 {
                                     "type": "object",
@@ -427,7 +432,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -448,19 +453,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Validation failed: shard_id is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to update resource: database error\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
@@ -479,6 +484,7 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "List pending resources",
+                "operationId": "listResources",
                 "parameters": [
                     {
                         "type": "string",
@@ -527,7 +533,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.Resource"
+                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -548,13 +554,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"shard_ids is required\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to list pending resources: database error\"}",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     }
                 }
@@ -562,7 +568,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.Resource": {
+        "github_com_dhnikolas_state-manager_internal_dto.Resource": {
             "type": "object",
             "required": [
                 "shard_id"
@@ -630,7 +636,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.CreateResourceRequest": {
+        "internal_http.CreateResourceRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -669,7 +675,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.ErrorResponse": {
+        "internal_http.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -677,7 +683,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UpdateResourceRequest": {
+        "internal_http.UpdateResourceRequest": {
             "type": "object",
             "required": [
                 "shard_id"
@@ -706,7 +712,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UpdateResourceStatusRequest": {
+        "internal_http.UpdateResourceStatusRequest": {
             "type": "object",
             "required": [
                 "shard_id"

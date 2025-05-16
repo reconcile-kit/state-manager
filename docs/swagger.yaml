@@ -1,5 +1,5 @@
 definitions:
-  dto.Resource:
+  github_com_dhnikolas_state-manager_internal_dto.Resource:
     properties:
       annotations:
         additionalProperties:
@@ -44,7 +44,7 @@ definitions:
     required:
     - shard_id
     type: object
-  http.CreateResourceRequest:
+  internal_http.CreateResourceRequest:
     properties:
       annotations:
         additionalProperties:
@@ -70,12 +70,12 @@ definitions:
     - name
     - shard_id
     type: object
-  http.ErrorResponse:
+  internal_http.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  http.UpdateResourceRequest:
+  internal_http.UpdateResourceRequest:
     properties:
       annotations:
         additionalProperties:
@@ -94,7 +94,7 @@ definitions:
     required:
     - shard_id
     type: object
-  http.UpdateResourceStatusRequest:
+  internal_http.UpdateResourceStatusRequest:
     properties:
       annotations:
         additionalProperties:
@@ -125,6 +125,7 @@ paths:
       consumes:
       - application/json
       description: Creates a new resource with the provided details.
+      operationId: createResource
       parameters:
       - description: Resource Group
         in: path
@@ -147,7 +148,7 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/http.CreateResourceRequest'
+          - $ref: '#/definitions/internal_http.CreateResourceRequest'
           - properties:
               spec:
                 additionalProperties: true
@@ -160,7 +161,7 @@ paths:
           description: Resource created
           schema:
             allOf:
-            - $ref: '#/definitions/dto.Resource'
+            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -173,12 +174,12 @@ paths:
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to create resource:
             database error"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
       summary: Create a new resource
       tags:
       - resources
@@ -186,8 +187,8 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Retrieves a resource by its resource_group, kind, namespace, and
-        name.
+      description: Delete a resource by its resource_group, kind, namespace, and name.
+      operationId: deleteResource
       parameters:
       - description: Resource Group
         in: path
@@ -218,12 +219,12 @@ paths:
           description: 'Invalid input" example={"error":"Deletion failed: resource_group
             is required"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "404":
           description: 'Not found" example={"error":"Resource not found: no rows"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
-      summary: Get a resource by key
+            $ref: '#/definitions/internal_http.ErrorResponse'
+      summary: Delete a resource
       tags:
       - resources
     get:
@@ -231,6 +232,7 @@ paths:
       - application/json
       description: Retrieves a resource by its resource_group, kind, namespace, and
         name.
+      operationId: getResource
       parameters:
       - description: Resource Group
         in: path
@@ -259,7 +261,7 @@ paths:
           description: Resource found
           schema:
             allOf:
-            - $ref: '#/definitions/dto.Resource'
+            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -272,11 +274,11 @@ paths:
           description: 'Invalid input" example={"error":"Validation failed: resource_group
             is required"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "404":
           description: 'Not found" example={"error":"Resource not found: no rows"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
       summary: Get a resource by key
       tags:
       - resources
@@ -284,6 +286,7 @@ paths:
       consumes:
       - application/json
       description: Updates a resource with the provided details.
+      operationId: updateResource
       parameters:
       - description: Resource Group
         in: path
@@ -311,7 +314,7 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/http.UpdateResourceRequest'
+          - $ref: '#/definitions/internal_http.UpdateResourceRequest'
           - properties:
               spec:
                 additionalProperties: true
@@ -324,7 +327,7 @@ paths:
           description: Resource updated
           schema:
             allOf:
-            - $ref: '#/definitions/dto.Resource'
+            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -337,12 +340,12 @@ paths:
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to update resource:
             database error"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
       summary: Update a resource
       tags:
       - resources
@@ -351,6 +354,7 @@ paths:
       consumes:
       - application/json
       description: Updates a resource with the provided details.
+      operationId: updateResourceStatus
       parameters:
       - description: Resource Group
         in: path
@@ -378,7 +382,7 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/http.UpdateResourceStatusRequest'
+          - $ref: '#/definitions/internal_http.UpdateResourceStatusRequest'
           - properties:
               status:
                 additionalProperties: true
@@ -391,7 +395,7 @@ paths:
           description: Resource updated
           schema:
             allOf:
-            - $ref: '#/definitions/dto.Resource'
+            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -404,17 +408,17 @@ paths:
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "409":
           description: 'Invalid input" example={"error":"Version conflict: resource
             version not match"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to update resource:
             database error"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
       summary: Update a resource
       tags:
       - resources
@@ -423,6 +427,7 @@ paths:
       consumes:
       - application/json
       description: возвращает ресурсы по фильтру
+      operationId: listResources
       parameters:
       - in: query
         name: kind
@@ -455,7 +460,7 @@ paths:
           description: List of pending resources
           schema:
             allOf:
-            - $ref: '#/definitions/dto.Resource'
+            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -467,12 +472,12 @@ paths:
         "400":
           description: Invalid input" example={"error":"shard_ids is required"}
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to list pending resources:
             database error"}'
           schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/internal_http.ErrorResponse'
       summary: List pending resources
       tags:
       - resources

@@ -12,6 +12,7 @@ import (
 // getResource получает ресурс по ключу
 // @Summary Get a resource by key
 // @Description Retrieves a resource by its resource_group, kind, namespace, and name.
+// @ID getResource
 // @Tags resources
 // @Accept json
 // @Produce json
@@ -54,6 +55,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 // listResources возвращает ресурсы по фильтру
 // @Summary List pending resources
 // @Description возвращает ресурсы по фильтру
+// @ID listResources
 // @Tags resources
 // @Accept json
 // @Produce json
