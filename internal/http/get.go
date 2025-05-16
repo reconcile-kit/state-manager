@@ -18,19 +18,19 @@ import (
 // @Param kind path string true "Kind" example="type1"
 // @Param namespace path string true "Namespace" example="ns1"
 // @Param name path string true "Name" example="resource1"
-// @Success 200 {object} dto.Resource{spec=map[string]interface{}} "Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+// @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "Resource found"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: resource_group is required"}
 // @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [get]
 func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
-	opts := dto.ResourceID{
+	opts := &dto.ResourceID{
 		ResourceGroup: chi.URLParam(r, "resource_group"),
 		Kind:          chi.URLParam(r, "kind"),
 		Namespace:     chi.URLParam(r, "namespace"),
 		Name:          chi.URLParam(r, "name"),
 	}
 
-	if err := h.validator.Struct(&opts); err != nil {
+	if err := h.validator.Struct(opts); err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
 		return
 	}
@@ -43,7 +43,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resource)
+	jsonIter.NewEncoder(w).Encode(resource)
 }
 
 // listResources возвращает ресурсы по фильтру
@@ -53,7 +53,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param filter query dto.ListResourcesOpts true "Kind" example="type1"
-// @Success 200 {array} dto.Resource{spec=map[string]interface{}} "List of pending resources"
+// @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "List of pending resources"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"shard_ids is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to list pending resources: database error"}
 // @Router /api/v1/resources [get]
@@ -65,7 +65,7 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 		limit = 500
 	}
 	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
-	listOpts := dto.ListResourcesOpts{
+	listOpts := &dto.ListResourcesOpts{
 		ResourceID: dto.ResourceID{
 			ResourceGroup: r.URL.Query().Get("resource_group"),
 			Kind:          r.URL.Query().Get("kind"),
@@ -86,5 +86,5 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resources)
+	jsonIter.NewEncoder(w).Encode(resources)
 }

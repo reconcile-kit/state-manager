@@ -21,8 +21,27 @@ func (r *PostgresResourceRepo) BeginTx(ctx context.Context) (pgx.Tx, error) {
 	return r.pool.Begin(ctx)
 }
 
-func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts dto.ResourceCreateOpts) (*dto.Resource, error) {
-	err := validateResourceID(opts.ResourceID)
+func (r *PostgresResourceRepo) TxWrap(ctx context.Context, fn func(tx pgx.Tx) (*dto.Resource, error)) (*dto.Resource, error) {
+	tx, err := r.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res, err := fn(tx)
+	if err != nil {
+		rollbackErr := tx.Rollback(ctx)
+		if rollbackErr != nil {
+			return nil, fmt.Errorf("rollback transaction error: %s", err)
+		}
+		return nil, err
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts *dto.ResourceCreateOpts) (*dto.Resource, error) {
+	err := validateResourceID(&opts.ResourceID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +72,8 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts dto.R
 	return res, nil
 }
 
-func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts dto.ResourceUpdateOpts) (*dto.Resource, error) {
-	err := validateResourceID(opts.ResourceID)
+func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.ResourceUpdateOpts) (*dto.Resource, error) {
+	err := validateResourceID(&opts.ResourceID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +102,8 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts dto.R
 	return res, nil
 }
 
-func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts dto.ResourceUpdateStatusOpts) (*dto.Resource, error) {
-	err := validateResourceID(opts.ResourceID)
+func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts *dto.ResourceUpdateStatusOpts) (*dto.Resource, error) {
+	err := validateResourceID(&opts.ResourceID)
 	if err != nil {
 		return nil, err
 	}
@@ -118,19 +137,38 @@ func (r *PostgresResourceRepo) Delete(ctx context.Context, tx pgx.Tx, id int64) 
 	return err
 }
 
-func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.ResourceID) (*dto.Resource, error) {
+func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts *dto.ResourceID) (*dto.Resource, error) {
 	err := validateResourceID(opts)
 	if err != nil {
 		return nil, err
 	}
-	const q = `SELECT id, shard_id, created_at, updated_at, spec, status, version, current_version FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
+	const q = `SELECT 
+       id,
+       resource_group,
+       kind,
+       namespace,
+       name,
+       shard_id,
+       created_at,
+       updated_at,
+       annotations,
+       spec,
+       status,
+       version,
+       current_version 
+    FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
 	res := &dto.Resource{}
 	row := r.pool.QueryRow(ctx, q, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(
 		&res.ID,
+		&res.ResourceGroup,
+		&res.Kind,
+		&res.Namespace,
+		&res.Name,
 		&res.ShardID,
 		&res.CreatedAt,
 		&res.UpdatedAt,
+		&res.Annotations,
 		&res.Spec,
 		&res.Status,
 		&res.Version,
@@ -138,9 +176,6 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.Res
 	); err != nil {
 		return nil, err
 	}
-	res.Kind = opts.Kind
-	res.Namespace = opts.Namespace
-	res.Name = opts.Name
 	res.Labels = make(map[string]string)
 	rows, err := r.pool.Query(ctx, `SELECT name, value FROM labels WHERE resource_id=$1`, res.ID)
 	if err != nil {
@@ -158,7 +193,7 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts dto.Res
 	return res, nil
 }
 
-func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.ListResourcesOpts) ([]*dto.Resource, error) {
+func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
 	sql := sqlbuilder.Select(
 		"id",
 		"shard_id",
@@ -206,8 +241,8 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.L
 	defer rows.Close()
 
 	resources := []*dto.Resource{}
-	resourceIDMap := make(map[int]*dto.Resource) // Для маппинга ID -> ResourceDTO
-	var resourceIDs []int                        // Для сбора ID ресурсов
+	resourceIDMap := make(map[int]*dto.Resource)
+	var resourceIDs []int
 
 	for rows.Next() {
 		res := &dto.Resource{}
@@ -219,14 +254,14 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.L
 		); err != nil {
 			return nil, err
 		}
-		res.Labels = make(map[string]string) // Инициализируем пустой map для меток
+		res.Labels = make(map[string]string)
 		resources = append(resources, res)
 		resourceIDMap[res.ID] = res
 		resourceIDs = append(resourceIDs, res.ID)
 	}
 
 	if len(resourceIDs) == 0 {
-		return resources, nil // Если ресурсов нет, возвращаем пустой список
+		return resources, nil
 	}
 
 	// Второй запрос: получаем все метки для найденных ресурсов
@@ -256,7 +291,7 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts dto.L
 	return resources, nil
 }
 
-func validateResourceID(ID dto.ResourceID) error {
+func validateResourceID(ID *dto.ResourceID) error {
 	if ID.ResourceGroup == "" || ID.Kind == "" || ID.Namespace == "" || ID.Name == "" {
 		return fmt.Errorf("resource group, kind and namespace must be set")
 	}

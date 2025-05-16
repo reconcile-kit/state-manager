@@ -38,24 +38,43 @@ definitions:
     required:
     - shard_id
     type: object
-  dto.ResourceCreateOpts:
+  http.CreateResourceRequest:
     properties:
       annotations:
         additionalProperties:
           type: string
         type: object
-      kind:
-        type: string
       labels:
         additionalProperties:
           type: string
         type: object
       name:
         type: string
-      namespace:
+      shard_id:
         type: string
-      resource_group:
+      spec:
+        items:
+          type: integer
+        type: array
+    required:
+    - name
+    - shard_id
+    type: object
+  http.ErrorResponse:
+    properties:
+      error:
         type: string
+    type: object
+  http.UpdateResourceRequest:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       shard_id:
         type: string
       spec:
@@ -65,34 +84,7 @@ definitions:
     required:
     - shard_id
     type: object
-  dto.ResourceUpdateOpts:
-    properties:
-      annotations:
-        additionalProperties:
-          type: string
-        type: object
-      kind:
-        type: string
-      labels:
-        additionalProperties:
-          type: string
-        type: object
-      name:
-        type: string
-      namespace:
-        type: string
-      resource_group:
-        type: string
-      shard_id:
-        type: string
-      spec:
-        items:
-          type: integer
-        type: array
-    required:
-    - shard_id
-    type: object
-  dto.ResourceUpdateStatusOpts:
+  http.UpdateResourceStatusRequest:
     properties:
       annotations:
         additionalProperties:
@@ -100,18 +92,10 @@ definitions:
         type: object
       current_version:
         type: integer
-      kind:
-        type: string
       labels:
         additionalProperties:
           type: string
         type: object
-      name:
-        type: string
-      namespace:
-        type: string
-      resource_group:
-        type: string
       shard_id:
         type: string
       status:
@@ -122,11 +106,6 @@ definitions:
         type: integer
     required:
     - shard_id
-    type: object
-  http.ErrorResponse:
-    properties:
-      error:
-        type: string
     type: object
 info:
   contact: {}
@@ -158,7 +137,7 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/dto.ResourceCreateOpts'
+          - $ref: '#/definitions/http.CreateResourceRequest'
           - properties:
               spec:
                 additionalProperties: true
@@ -167,13 +146,16 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Resource created" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+        "200":
+          description: Resource created
           schema:
             allOf:
             - $ref: '#/definitions/dto.Resource'
             - properties:
                 spec:
+                  additionalProperties: true
+                  type: object
+                status:
                   additionalProperties: true
                   type: object
               type: object
@@ -221,12 +203,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: Resource found" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"value"},"labels":{"env":"prod"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T00:00:00Z","version":1,"current_version":0}
+          description: Resource found
           schema:
             allOf:
             - $ref: '#/definitions/dto.Resource'
             - properties:
                 spec:
+                  additionalProperties: true
+                  type: object
+                status:
                   additionalProperties: true
                   type: object
               type: object
@@ -273,20 +258,28 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/dto.ResourceUpdateOpts'
+          - $ref: '#/definitions/http.UpdateResourceRequest'
           - properties:
               spec:
-                additionalProperties:
-                  type: string
+                additionalProperties: true
                 type: object
             type: object
       produces:
       - application/json
       responses:
         "200":
-          description: Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
+          description: Resource updated
           schema:
-            $ref: '#/definitions/dto.Resource'
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                spec:
+                  additionalProperties: true
+                  type: object
+                status:
+                  additionalProperties: true
+                  type: object
+              type: object
         "400":
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
@@ -332,7 +325,7 @@ paths:
         required: true
         schema:
           allOf:
-          - $ref: '#/definitions/dto.ResourceUpdateStatusOpts'
+          - $ref: '#/definitions/http.UpdateResourceStatusRequest'
           - properties:
               status:
                 additionalProperties: true
@@ -342,12 +335,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: Resource updated" example={"id":1,"resource_group":"group1","kind":"type1","namespace":"ns1","name":"resource1","shard_id":"default","body":{"key":"new_value"},"labels":{"env":"dev"},"created_at":"2025-05-12T00:00:00Z","updated_at":"2025-05-12T01:00:00Z","version":2,"current_version":0}
+          description: Resource updated
           schema:
-            $ref: '#/definitions/dto.Resource'
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                spec:
+                  additionalProperties: true
+                  type: object
+                status:
+                  additionalProperties: true
+                  type: object
+              type: object
         "400":
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
+        "409":
+          description: 'Invalid input" example={"error":"Version conflict: resource
+            version not match"}'
           schema:
             $ref: '#/definitions/http.ErrorResponse'
         "500":
@@ -394,15 +401,16 @@ paths:
         "200":
           description: List of pending resources
           schema:
-            items:
-              allOf:
-              - $ref: '#/definitions/dto.Resource'
-              - properties:
-                  spec:
-                    additionalProperties: true
-                    type: object
-                type: object
-            type: array
+            allOf:
+            - $ref: '#/definitions/dto.Resource'
+            - properties:
+                spec:
+                  additionalProperties: true
+                  type: object
+                status:
+                  additionalProperties: true
+                  type: object
+              type: object
         "400":
           description: Invalid input" example={"error":"shard_ids is required"}
           schema:

@@ -4,12 +4,13 @@ import (
 	_ "github.com/dhnikolas/state-manager/docs"
 	"github.com/dhnikolas/state-manager/internal/services/states"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	jsoniter "github.com/json-iterator/go"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-var json = jsoniter.Config{
+var jsonIter = jsoniter.Config{
 	EscapeHTML:             false, // Ускоряет маршалинг, если HTML-экранирование не нужно
 	SortMapKeys:            false, // Ускоряет маршалинг для map
 	ValidateJsonRawMessage: true,  // Поддержка json.RawMessage
@@ -27,6 +28,7 @@ type Handler struct {
 func NewRouter(service *states.StateService) *chi.Mux {
 	handler := &Handler{service: service, validator: validator.New()}
 	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
 	// Группа маршрутов API
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/resources", func(r chi.Router) {

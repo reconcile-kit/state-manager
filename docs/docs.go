@@ -58,7 +58,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.ResourceCreateOpts"
+                                    "$ref": "#/definitions/http.CreateResourceRequest"
                                 },
                                 {
                                     "type": "object",
@@ -74,8 +74,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Resource created\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"value\"},\"labels\":{\"env\":\"prod\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T00:00:00Z\",\"version\":1,\"current_version\":0}",
+                    "200": {
+                        "description": "Resource created",
                         "schema": {
                             "allOf": [
                                 {
@@ -85,6 +85,10 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "spec": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        "status": {
                                             "type": "object",
                                             "additionalProperties": true
                                         }
@@ -153,7 +157,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource found\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"value\"},\"labels\":{\"env\":\"prod\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T00:00:00Z\",\"version\":1,\"current_version\":0}",
+                        "description": "Resource found",
                         "schema": {
                             "allOf": [
                                 {
@@ -163,6 +167,10 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "spec": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        "status": {
                                             "type": "object",
                                             "additionalProperties": true
                                         }
@@ -234,16 +242,14 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.ResourceUpdateOpts"
+                                    "$ref": "#/definitions/http.UpdateResourceRequest"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "spec": {
                                             "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "additionalProperties": true
                                         }
                                     }
                                 }
@@ -253,9 +259,26 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource updated\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"new_value\"},\"labels\":{\"env\":\"dev\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T01:00:00Z\",\"version\":2,\"current_version\":0}",
+                        "description": "Resource updated",
                         "schema": {
-                            "$ref": "#/definitions/dto.Resource"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Resource"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "spec": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        "status": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -323,7 +346,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.ResourceUpdateStatusOpts"
+                                    "$ref": "#/definitions/http.UpdateResourceStatusRequest"
                                 },
                                 {
                                     "type": "object",
@@ -340,13 +363,36 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource updated\" example={\"id\":1,\"resource_group\":\"group1\",\"kind\":\"type1\",\"namespace\":\"ns1\",\"name\":\"resource1\",\"shard_id\":\"default\",\"body\":{\"key\":\"new_value\"},\"labels\":{\"env\":\"dev\"},\"created_at\":\"2025-05-12T00:00:00Z\",\"updated_at\":\"2025-05-12T01:00:00Z\",\"version\":2,\"current_version\":0}",
+                        "description": "Resource updated",
                         "schema": {
-                            "$ref": "#/definitions/dto.Resource"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Resource"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "spec": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        "status": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Validation failed: shard_id is required\"}",
+                        "schema": {
+                            "$ref": "#/definitions/http.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
                         "schema": {
                             "$ref": "#/definitions/http.ErrorResponse"
                         }
@@ -419,23 +465,24 @@ const docTemplate = `{
                     "200": {
                         "description": "List of pending resources",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/dto.Resource"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "spec": {
-                                                "type": "object",
-                                                "additionalProperties": true
-                                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Resource"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "spec": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        "status": {
+                                            "type": "object",
+                                            "additionalProperties": true
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -514,9 +561,10 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ResourceCreateOpts": {
+        "http.CreateResourceRequest": {
             "type": "object",
             "required": [
+                "name",
                 "shard_id"
             ],
             "properties": {
@@ -526,9 +574,6 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "kind": {
-                    "type": "string"
-                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
@@ -536,12 +581,6 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "type": "string"
-                },
-                "namespace": {
-                    "type": "string"
-                },
-                "resource_group": {
                     "type": "string"
                 },
                 "shard_id": {
@@ -555,7 +594,15 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ResourceUpdateOpts": {
+        "http.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UpdateResourceRequest": {
             "type": "object",
             "required": [
                 "shard_id"
@@ -567,23 +614,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "kind": {
-                    "type": "string"
-                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "namespace": {
-                    "type": "string"
-                },
-                "resource_group": {
-                    "type": "string"
                 },
                 "shard_id": {
                     "type": "string"
@@ -596,7 +631,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ResourceUpdateStatusOpts": {
+        "http.UpdateResourceStatusRequest": {
             "type": "object",
             "required": [
                 "shard_id"
@@ -611,23 +646,11 @@ const docTemplate = `{
                 "current_version": {
                     "type": "integer"
                 },
-                "kind": {
-                    "type": "string"
-                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "namespace": {
-                    "type": "string"
-                },
-                "resource_group": {
-                    "type": "string"
                 },
                 "shard_id": {
                     "type": "string"
@@ -640,14 +663,6 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "integer"
-                }
-            }
-        },
-        "http.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
                 }
             }
         }
