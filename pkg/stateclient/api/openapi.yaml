@@ -354,7 +354,7 @@ paths:
       - resources
 components:
   schemas:
-    github_com_dhnikolas_state-manager_internal_dto.Resource:
+    github_com_reconcile-kit_state-manager_internal_dto.Resource:
       properties:
         annotations:
           additionalProperties:
@@ -479,12 +479,11 @@ components:
       - $ref: '#/components/schemas/internal_http.CreateResourceRequest'
       - properties:
           spec:
-            additionalProperties: true
-            type: object
+            $ref: '#/components/schemas/createResource_request_allOf_spec'
         type: object
     createResource_200_response:
       allOf:
-      - $ref: '#/components/schemas/github_com_dhnikolas_state-manager_internal_dto.Resource'
+      - $ref: '#/components/schemas/github_com_reconcile-kit_state-manager_internal_dto.Resource'
       - properties:
           spec:
             additionalProperties: true
@@ -531,4 +530,7 @@ components:
             additionalProperties: true
             type: object
         type: object
+    createResource_request_allOf_spec:
+      properties: {}
+      type: object
 x-original-swagger-version: "2.0"

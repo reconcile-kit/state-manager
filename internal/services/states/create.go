@@ -2,12 +2,22 @@ package states
 
 import (
 	"context"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 func (s *StateService) Create(ctx context.Context, opts *dto.ResourceCreateOpts) (*dto.Resource, error) {
 	return s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
-		return s.repo.Create(ctx, tx, opts)
+		result, err := s.repo.Create(ctx, tx, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.eventsRepo.Add(ctx, result.ShardID, "update", result.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
 	})
 }

@@ -2,8 +2,8 @@ package http
 
 import (
 	"fmt"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/go-chi/chi/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 	"net/http"
 )
 

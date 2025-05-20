@@ -2,9 +2,10 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/go-chi/chi/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 	"net/http"
 )
 
@@ -27,7 +28,7 @@ type CreateResourceRequest struct {
 // @Param resource_group path string true "Resource Group" example="group1"
 // @Param kind path string true "Kind" example="type1"
 // @Param namespace path string true "Namespace" example="ns1"
-// @Param resource body CreateResourceRequest{spec=map[string]interface{}} true "Resource details"
+// @Param resource body CreateResourceRequest{spec=object} true "Resource details"
 // @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}}  "Resource created"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to create resource: database error"}
@@ -61,6 +62,10 @@ func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.Create(r.Context(), resourceCreateOpts)
 	if err != nil {
+		if errors.Is(err, dto.AlreadyExistsError) {
+			http.Error(w, fmt.Sprintf(`{"error":"Already exists: %s"}`, err), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to create resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}

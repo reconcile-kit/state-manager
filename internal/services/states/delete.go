@@ -2,8 +2,8 @@ package states
 
 import (
 	"context"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 	"time"
 )
 
@@ -18,6 +18,10 @@ func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
 			if err != nil {
 				return nil, err
 			}
+			err = s.eventsRepo.Add(ctx, currentResource.ShardID, "delete", currentResource.ResourceID)
+			if err != nil {
+				return nil, err
+			}
 			return currentResource, nil
 		}
 		if currentResource.DeletionTimestamp != nil {
@@ -26,7 +30,16 @@ func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
 		timeNow := time.Now()
 		currentResource.DeletionTimestamp = &timeNow
 
-		return currentResource, s.repo.SetDeletionTimestamp(ctx, tx, opts, timeNow)
+		err = s.repo.SetDeletionTimestamp(ctx, tx, opts, timeNow)
+		if err != nil {
+			return nil, err
+		}
+		err = s.eventsRepo.Add(ctx, currentResource.ShardID, "update", currentResource.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+
+		return currentResource, nil
 	})
 	return err
 }

@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/reconcile-kit/state-manager/internal/dto"
+	"strings"
 	"time"
 )
 
@@ -64,7 +65,11 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts *dto.
 		opts.Annotations,
 		opts.Spec,
 	)
-	if err := row.Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.ShardID, &res.Version); err != nil {
+	err = row.Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.ShardID, &res.Version)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			return nil, dto.AlreadyExistsError
+		}
 		return nil, err
 	}
 	for name, value := range opts.Labels {

@@ -90,7 +90,7 @@ Class | Method | HTTP request | Description
 
  - [CreateResource200Response](docs/CreateResource200Response.md)
  - [CreateResourceRequest](docs/CreateResourceRequest.md)
- - [GithubComDhnikolasStateManagerInternalDtoResource](docs/GithubComDhnikolasStateManagerInternalDtoResource.md)
+ - [GithubComReconcileKitStateManagerInternalDtoResource](docs/GithubComReconcileKitStateManagerInternalDtoResource.md)
  - [InternalHttpCreateResourceRequest](docs/InternalHttpCreateResourceRequest.md)
  - [InternalHttpErrorResponse](docs/InternalHttpErrorResponse.md)
  - [InternalHttpUpdateResourceRequest](docs/InternalHttpUpdateResourceRequest.md)

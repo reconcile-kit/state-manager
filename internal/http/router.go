@@ -1,12 +1,12 @@
 package http
 
 import (
-	_ "github.com/dhnikolas/state-manager/docs"
-	"github.com/dhnikolas/state-manager/internal/services/states"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	jsoniter "github.com/json-iterator/go"
+	_ "github.com/reconcile-kit/state-manager/docs"
+	"github.com/reconcile-kit/state-manager/internal/services/states"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 

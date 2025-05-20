@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
-	transport "github.com/dhnikolas/state-manager/internal/http"
-	_ "github.com/dhnikolas/state-manager/internal/migrations"
-	"github.com/dhnikolas/state-manager/internal/repositories/resources"
-	"github.com/dhnikolas/state-manager/internal/services/states"
+	transport "github.com/reconcile-kit/state-manager/internal/http"
+	_ "github.com/reconcile-kit/state-manager/internal/migrations"
+	"github.com/reconcile-kit/state-manager/internal/repositories/events"
+	"github.com/reconcile-kit/state-manager/internal/repositories/resources"
+	"github.com/reconcile-kit/state-manager/internal/services/states"
+	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -23,8 +26,19 @@ func main() {
 		panic("DATABASE_URL environment variable not set")
 	}
 
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		panic("REDIS_URL environment variable not set")
+	}
+
 	pool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
+		panic(err)
+	}
+
+	redisClient := redis.NewClient(&redis.Options{Addr: redisURL, DialTimeout: 30 * time.Second})
+	defer redisClient.Close()
+	if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
 		panic(err)
 	}
 
@@ -39,8 +53,9 @@ func main() {
 		panic(err)
 	}
 
+	eventsRepo := events.NewRedisRepository(redisClient)
 	resourceRepository := resources.NewResourceRepository(pool)
-	stateService := states.NewStateService(resourceRepository)
+	stateService := states.NewStateService(resourceRepository, eventsRepo)
 	currentRouter := transport.NewRouter(stateService)
 
 	log.Fatal(http.ListenAndServe(":8080", currentRouter))

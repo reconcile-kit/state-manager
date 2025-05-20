@@ -22,4 +22,5 @@ openapi-client:
 	    -o /src/pkg/stateclient \
 	    --package-name stateclient \
 	    --additional-properties=withGoMod=false \
+	    --global-property apiTests=false,modelTests=false
 

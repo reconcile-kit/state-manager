@@ -2,12 +2,12 @@ package states
 
 import (
 	"context"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts) (*dto.Resource, error) {
-	return s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
+	result, err := s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
 		currentResource, err := s.repo.GetByResourceID(ctx, &opts.ResourceID)
 		if err != nil {
 			return nil, err
@@ -19,8 +19,22 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 			}
 			return currentResource, nil
 		}
-		return s.repo.Update(ctx, tx, opts)
+		result, err := s.repo.Update(ctx, tx, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.eventsRepo.Add(ctx, result.ShardID, "update", result.ResourceID)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdateStatusOpts) (*dto.Resource, error) {
@@ -44,6 +58,11 @@ func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdat
 			return currentResource, nil
 		}
 
-		return s.repo.UpdateStatus(ctx, tx, opts)
+		result, err := s.repo.UpdateStatus(ctx, tx, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
 	})
 }

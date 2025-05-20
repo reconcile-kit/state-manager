@@ -2,8 +2,8 @@ package states
 
 import (
 	"context"
-	"github.com/dhnikolas/state-manager/internal/dto"
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 	"time"
 )
 
@@ -19,10 +19,15 @@ type ResourceRepository interface {
 	ListResources(ctx context.Context, listOpts *dto.ListResourcesOpts) ([]*dto.Resource, error)
 }
 
-type StateService struct {
-	repo ResourceRepository
+type EventsRepository interface {
+	Add(ctx context.Context, shardID, messageType string, resource dto.ResourceID) error
 }
 
-func NewStateService(repo ResourceRepository) *StateService {
-	return &StateService{repo: repo}
+type StateService struct {
+	repo       ResourceRepository
+	eventsRepo EventsRepository
+}
+
+func NewStateService(repo ResourceRepository, eventsRepo EventsRepository) *StateService {
+	return &StateService{repo: repo, eventsRepo: eventsRepo}
 }

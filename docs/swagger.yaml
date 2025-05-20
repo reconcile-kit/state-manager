@@ -1,5 +1,5 @@
 definitions:
-  github_com_dhnikolas_state-manager_internal_dto.Resource:
+  github_com_reconcile-kit_state-manager_internal_dto.Resource:
     properties:
       annotations:
         additionalProperties:
@@ -151,7 +151,6 @@ paths:
           - $ref: '#/definitions/internal_http.CreateResourceRequest'
           - properties:
               spec:
-                additionalProperties: true
                 type: object
             type: object
       produces:
@@ -161,7 +160,7 @@ paths:
           description: Resource created
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
+            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -261,7 +260,7 @@ paths:
           description: Resource found
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
+            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -327,7 +326,7 @@ paths:
           description: Resource updated
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
+            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -395,7 +394,7 @@ paths:
           description: Resource updated
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
+            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true
@@ -460,7 +459,7 @@ paths:
           description: List of pending resources
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource'
+            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
             - properties:
                 spec:
                   additionalProperties: true

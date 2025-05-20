@@ -2,7 +2,7 @@ package states
 
 import (
 	"context"
-	"github.com/dhnikolas/state-manager/internal/dto"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 func (s *StateService) GetByResourceID(ctx context.Context, opts *dto.ResourceID) (*dto.Resource, error) {

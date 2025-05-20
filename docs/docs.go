@@ -65,8 +65,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "spec": {
-                                            "type": "object",
-                                            "additionalProperties": true
+                                            "type": "object"
                                         }
                                     }
                                 }
@@ -80,7 +79,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
+                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -163,7 +162,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
+                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -266,7 +265,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
+                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -432,7 +431,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
+                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -533,7 +532,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_dhnikolas_state-manager_internal_dto.Resource"
+                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
                                 },
                                 {
                                     "type": "object",
@@ -568,7 +567,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_dhnikolas_state-manager_internal_dto.Resource": {
+        "github_com_reconcile-kit_state-manager_internal_dto.Resource": {
             "type": "object",
             "required": [
                 "shard_id"

@@ -1,4 +1,4 @@
-# GithubComDhnikolasStateManagerInternalDtoResource
+# GithubComReconcileKitStateManagerInternalDtoResource
 
 ## Properties
 
@@ -22,390 +22,390 @@ Name | Type | Description | Notes
 
 ## Methods
 
-### NewGithubComDhnikolasStateManagerInternalDtoResource
+### NewGithubComReconcileKitStateManagerInternalDtoResource
 
-`func NewGithubComDhnikolasStateManagerInternalDtoResource(shardId string, ) *GithubComDhnikolasStateManagerInternalDtoResource`
+`func NewGithubComReconcileKitStateManagerInternalDtoResource(shardId string, ) *GithubComReconcileKitStateManagerInternalDtoResource`
 
-NewGithubComDhnikolasStateManagerInternalDtoResource instantiates a new GithubComDhnikolasStateManagerInternalDtoResource object
+NewGithubComReconcileKitStateManagerInternalDtoResource instantiates a new GithubComReconcileKitStateManagerInternalDtoResource object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewGithubComDhnikolasStateManagerInternalDtoResourceWithDefaults
+### NewGithubComReconcileKitStateManagerInternalDtoResourceWithDefaults
 
-`func NewGithubComDhnikolasStateManagerInternalDtoResourceWithDefaults() *GithubComDhnikolasStateManagerInternalDtoResource`
+`func NewGithubComReconcileKitStateManagerInternalDtoResourceWithDefaults() *GithubComReconcileKitStateManagerInternalDtoResource`
 
-NewGithubComDhnikolasStateManagerInternalDtoResourceWithDefaults instantiates a new GithubComDhnikolasStateManagerInternalDtoResource object
+NewGithubComReconcileKitStateManagerInternalDtoResourceWithDefaults instantiates a new GithubComReconcileKitStateManagerInternalDtoResource object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetAnnotations
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetAnnotations() map[string]string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetAnnotations() map[string]string`
 
 GetAnnotations returns the Annotations field if non-nil, zero value otherwise.
 
 ### GetAnnotationsOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetAnnotationsOk() (*map[string]string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetAnnotationsOk() (*map[string]string, bool)`
 
 GetAnnotationsOk returns a tuple with the Annotations field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAnnotations
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetAnnotations(v map[string]string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetAnnotations(v map[string]string)`
 
 SetAnnotations sets Annotations field to given value.
 
 ### HasAnnotations
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasAnnotations() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasAnnotations() bool`
 
 HasAnnotations returns a boolean if a field has been set.
 
 ### GetCreatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetCreatedAt() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetCreatedAt() string`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetCreatedAtOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetCreatedAtOk() (*string, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetCreatedAt(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetCreatedAt(v string)`
 
 SetCreatedAt sets CreatedAt field to given value.
 
 ### HasCreatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasCreatedAt() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasCreatedAt() bool`
 
 HasCreatedAt returns a boolean if a field has been set.
 
 ### GetCurrentVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetCurrentVersion() int32`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetCurrentVersion() int32`
 
 GetCurrentVersion returns the CurrentVersion field if non-nil, zero value otherwise.
 
 ### GetCurrentVersionOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetCurrentVersionOk() (*int32, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetCurrentVersionOk() (*int32, bool)`
 
 GetCurrentVersionOk returns a tuple with the CurrentVersion field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCurrentVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetCurrentVersion(v int32)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetCurrentVersion(v int32)`
 
 SetCurrentVersion sets CurrentVersion field to given value.
 
 ### HasCurrentVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasCurrentVersion() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasCurrentVersion() bool`
 
 HasCurrentVersion returns a boolean if a field has been set.
 
 ### GetDeletionTimestamp
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetDeletionTimestamp() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetDeletionTimestamp() string`
 
 GetDeletionTimestamp returns the DeletionTimestamp field if non-nil, zero value otherwise.
 
 ### GetDeletionTimestampOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetDeletionTimestampOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetDeletionTimestampOk() (*string, bool)`
 
 GetDeletionTimestampOk returns a tuple with the DeletionTimestamp field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetDeletionTimestamp
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetDeletionTimestamp(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetDeletionTimestamp(v string)`
 
 SetDeletionTimestamp sets DeletionTimestamp field to given value.
 
 ### HasDeletionTimestamp
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasDeletionTimestamp() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasDeletionTimestamp() bool`
 
 HasDeletionTimestamp returns a boolean if a field has been set.
 
 ### GetFinalizers
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetFinalizers() []string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetFinalizers() []string`
 
 GetFinalizers returns the Finalizers field if non-nil, zero value otherwise.
 
 ### GetFinalizersOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetFinalizersOk() (*[]string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetFinalizersOk() (*[]string, bool)`
 
 GetFinalizersOk returns a tuple with the Finalizers field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetFinalizers
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetFinalizers(v []string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetFinalizers(v []string)`
 
 SetFinalizers sets Finalizers field to given value.
 
 ### HasFinalizers
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasFinalizers() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasFinalizers() bool`
 
 HasFinalizers returns a boolean if a field has been set.
 
 ### GetKind
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetKind() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetKind() string`
 
 GetKind returns the Kind field if non-nil, zero value otherwise.
 
 ### GetKindOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetKindOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetKindOk() (*string, bool)`
 
 GetKindOk returns a tuple with the Kind field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetKind
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetKind(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetKind(v string)`
 
 SetKind sets Kind field to given value.
 
 ### HasKind
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasKind() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasKind() bool`
 
 HasKind returns a boolean if a field has been set.
 
 ### GetLabels
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetLabels() map[string]string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetLabels() map[string]string`
 
 GetLabels returns the Labels field if non-nil, zero value otherwise.
 
 ### GetLabelsOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetLabelsOk() (*map[string]string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetLabelsOk() (*map[string]string, bool)`
 
 GetLabelsOk returns a tuple with the Labels field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetLabels
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetLabels(v map[string]string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetLabels(v map[string]string)`
 
 SetLabels sets Labels field to given value.
 
 ### HasLabels
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasLabels() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasLabels() bool`
 
 HasLabels returns a boolean if a field has been set.
 
 ### GetName
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetName() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetName() string`
 
 GetName returns the Name field if non-nil, zero value otherwise.
 
 ### GetNameOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetNameOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetNameOk() (*string, bool)`
 
 GetNameOk returns a tuple with the Name field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetName
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetName(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetName(v string)`
 
 SetName sets Name field to given value.
 
 ### HasName
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasName() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasName() bool`
 
 HasName returns a boolean if a field has been set.
 
 ### GetNamespace
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetNamespace() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetNamespace() string`
 
 GetNamespace returns the Namespace field if non-nil, zero value otherwise.
 
 ### GetNamespaceOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetNamespaceOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetNamespaceOk() (*string, bool)`
 
 GetNamespaceOk returns a tuple with the Namespace field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetNamespace
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetNamespace(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetNamespace(v string)`
 
 SetNamespace sets Namespace field to given value.
 
 ### HasNamespace
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasNamespace() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasNamespace() bool`
 
 HasNamespace returns a boolean if a field has been set.
 
 ### GetResourceGroup
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetResourceGroup() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetResourceGroup() string`
 
 GetResourceGroup returns the ResourceGroup field if non-nil, zero value otherwise.
 
 ### GetResourceGroupOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetResourceGroupOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetResourceGroupOk() (*string, bool)`
 
 GetResourceGroupOk returns a tuple with the ResourceGroup field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetResourceGroup
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetResourceGroup(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetResourceGroup(v string)`
 
 SetResourceGroup sets ResourceGroup field to given value.
 
 ### HasResourceGroup
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasResourceGroup() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasResourceGroup() bool`
 
 HasResourceGroup returns a boolean if a field has been set.
 
 ### GetShardId
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetShardId() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetShardId() string`
 
 GetShardId returns the ShardId field if non-nil, zero value otherwise.
 
 ### GetShardIdOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetShardIdOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetShardIdOk() (*string, bool)`
 
 GetShardIdOk returns a tuple with the ShardId field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetShardId
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetShardId(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetShardId(v string)`
 
 SetShardId sets ShardId field to given value.
 
 
 ### GetSpec
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetSpec() []int32`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetSpec() []int32`
 
 GetSpec returns the Spec field if non-nil, zero value otherwise.
 
 ### GetSpecOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetSpecOk() (*[]int32, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetSpecOk() (*[]int32, bool)`
 
 GetSpecOk returns a tuple with the Spec field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetSpec
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetSpec(v []int32)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetSpec(v []int32)`
 
 SetSpec sets Spec field to given value.
 
 ### HasSpec
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasSpec() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasSpec() bool`
 
 HasSpec returns a boolean if a field has been set.
 
 ### GetStatus
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetStatus() []int32`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetStatus() []int32`
 
 GetStatus returns the Status field if non-nil, zero value otherwise.
 
 ### GetStatusOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetStatusOk() (*[]int32, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetStatusOk() (*[]int32, bool)`
 
 GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetStatus
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetStatus(v []int32)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetStatus(v []int32)`
 
 SetStatus sets Status field to given value.
 
 ### HasStatus
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasStatus() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasStatus() bool`
 
 HasStatus returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetUpdatedAt() string`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetUpdatedAt() string`
 
 GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
 
 ### GetUpdatedAtOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetUpdatedAtOk() (*string, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetUpdatedAtOk() (*string, bool)`
 
 GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetUpdatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetUpdatedAt(v string)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetUpdatedAt(v string)`
 
 SetUpdatedAt sets UpdatedAt field to given value.
 
 ### HasUpdatedAt
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasUpdatedAt() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasUpdatedAt() bool`
 
 HasUpdatedAt returns a boolean if a field has been set.
 
 ### GetVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetVersion() int32`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetVersion() int32`
 
 GetVersion returns the Version field if non-nil, zero value otherwise.
 
 ### GetVersionOk
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) GetVersionOk() (*int32, bool)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) GetVersionOk() (*int32, bool)`
 
 GetVersionOk returns a tuple with the Version field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) SetVersion(v int32)`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) SetVersion(v int32)`
 
 SetVersion sets Version field to given value.
 
 ### HasVersion
 
-`func (o *GithubComDhnikolasStateManagerInternalDtoResource) HasVersion() bool`
+`func (o *GithubComReconcileKitStateManagerInternalDtoResource) HasVersion() bool`
 
 HasVersion returns a boolean if a field has been set.
 
