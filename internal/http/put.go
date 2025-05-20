@@ -74,6 +74,7 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 
 type UpdateResourceStatusRequest struct {
 	ShardID        string            `json:"shard_id" validate:"required"`
+	Finalizers     []string          `json:"finalizers"`
 	Labels         map[string]string `json:"labels"`
 	Annotations    map[string]string `json:"annotations"`
 	Status         json.RawMessage   `json:"status"`
@@ -119,6 +120,7 @@ func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 			ShardID:     req.ShardID,
 			Labels:      req.Labels,
 			Annotations: req.Annotations,
+			Finalizers:  req.Finalizers,
 		},
 		Status:         req.Status,
 		Version:        req.Version,

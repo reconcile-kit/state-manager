@@ -20,12 +20,12 @@ func NewResourceRepository(pool *pgxpool.Pool) *PostgresResourceRepo {
 	return &PostgresResourceRepo{pool: pool}
 }
 
-func (r *PostgresResourceRepo) BeginTx(ctx context.Context) (pgx.Tx, error) {
+func (r *PostgresResourceRepo) beginTx(ctx context.Context) (pgx.Tx, error) {
 	return r.pool.Begin(ctx)
 }
 
 func (r *PostgresResourceRepo) TxWrap(ctx context.Context, fn func(tx pgx.Tx) (*dto.Resource, error)) (*dto.Resource, error) {
-	tx, err := r.BeginTx(ctx)
+	tx, err := r.beginTx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +41,15 @@ func (r *PostgresResourceRepo) TxWrap(ctx context.Context, fn func(tx pgx.Tx) (*
 		return nil, err
 	}
 	return res, nil
+}
+
+func (r *PostgresResourceRepo) Lock(ctx context.Context, tx pgx.Tx, opts *dto.ResourceID) error {
+	resourceID := opts.ResourceGroup + opts.Kind + opts.Namespace + opts.Name
+	_, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext($1))`, resourceID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts *dto.ResourceCreateOpts) (*dto.Resource, error) {
@@ -154,7 +163,7 @@ func (r *PostgresResourceRepo) SetDeletionTimestamp(ctx context.Context, tx pgx.
 	return err
 }
 
-func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts *dto.ResourceID) (*dto.Resource, error) {
+func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, tx pgx.Tx, opts *dto.ResourceID) (*dto.Resource, error) {
 	err := validateResourceID(opts)
 	if err != nil {
 		return nil, err
@@ -177,7 +186,7 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts *dto.Re
        current_version 
     FROM resources WHERE resource_group=$1 AND kind=$2 AND namespace=$3 AND name=$4`
 	res := &dto.Resource{}
-	row := r.pool.QueryRow(ctx, q, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
+	row := tx.QueryRow(ctx, q, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(
 		&res.ID,
 		&res.ResourceGroup,
@@ -201,7 +210,7 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, opts *dto.Re
 		return nil, err
 	}
 	res.Labels = make(map[string]string)
-	rows, err := r.pool.Query(ctx, `SELECT name, value FROM labels WHERE resource_id=$1`, res.ID)
+	rows, err := tx.Query(ctx, `SELECT name, value FROM labels WHERE resource_id=$1`, res.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,11 @@ import (
 
 func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
 	_, err := s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
-		currentResource, err := s.repo.GetByResourceID(ctx, opts)
+		err := s.repo.Lock(ctx, tx, opts)
+		if err != nil {
+			return nil, err
+		}
+		currentResource, err := s.repo.GetByResourceID(ctx, tx, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -24,16 +28,17 @@ func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
 			}
 			return currentResource, nil
 		}
-		if currentResource.DeletionTimestamp != nil {
-			return currentResource, nil
-		}
-		timeNow := time.Now()
-		currentResource.DeletionTimestamp = &timeNow
 
-		err = s.repo.SetDeletionTimestamp(ctx, tx, opts, timeNow)
-		if err != nil {
-			return nil, err
+		if currentResource.DeletionTimestamp == nil {
+			timeNow := time.Now()
+			currentResource.DeletionTimestamp = &timeNow
+
+			err = s.repo.SetDeletionTimestamp(ctx, tx, opts, timeNow)
+			if err != nil {
+				return nil, err
+			}
 		}
+
 		err = s.eventsRepo.Add(ctx, currentResource.ShardID, "update", currentResource.ResourceID)
 		if err != nil {
 			return nil, err

@@ -8,7 +8,12 @@ import (
 
 func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts) (*dto.Resource, error) {
 	result, err := s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
-		currentResource, err := s.repo.GetByResourceID(ctx, &opts.ResourceID)
+
+		err := s.repo.Lock(ctx, tx, &opts.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+		currentResource, err := s.repo.GetByResourceID(ctx, tx, &opts.ResourceID)
 		if err != nil {
 			return nil, err
 		}
@@ -24,22 +29,27 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 			return nil, err
 		}
 
+		err = s.eventsRepo.Add(ctx, result.ShardID, "update", result.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+
 		return result, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.eventsRepo.Add(ctx, result.ShardID, "update", result.ResourceID)
-	if err != nil {
-		return nil, err
-	}
 	return result, nil
 }
 
 func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdateStatusOpts) (*dto.Resource, error) {
 	return s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
-		currentResource, err := s.repo.GetByResourceID(ctx, &opts.ResourceID)
+		err := s.repo.Lock(ctx, tx, &opts.ResourceID)
+		if err != nil {
+			return nil, err
+		}
+		currentResource, err := s.repo.GetByResourceID(ctx, tx, &opts.ResourceID)
 		if err != nil {
 			return nil, err
 		}
