@@ -13,6 +13,7 @@ type UpdateResourceRequest struct {
 	ShardID     string            `json:"shard_id" validate:"required"`
 	Labels      map[string]string `json:"labels"`
 	Annotations map[string]string `json:"annotations"`
+	Finalizers  []string          `json:"finalizers"`
 	Spec        json.RawMessage   `json:"spec"`
 }
 
@@ -55,6 +56,7 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 			ShardID:     req.ShardID,
 			Labels:      req.Labels,
 			Annotations: req.Annotations,
+			Finalizers:  req.Finalizers,
 		},
 		Spec: req.Spec,
 	}
