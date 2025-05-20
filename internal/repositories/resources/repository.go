@@ -158,7 +158,7 @@ func (r *PostgresResourceRepo) Delete(ctx context.Context, tx pgx.Tx, id int64) 
 }
 
 func (r *PostgresResourceRepo) SetDeletionTimestamp(ctx context.Context, tx pgx.Tx, opts *dto.ResourceID, deletionTimestamp time.Time) error {
-	_, err := tx.Exec(ctx, `UPDATE resources SET deletion_timestamp=$1 WHERE  resource_group=$2 AND kind=$3 AND namespace=$4 AND name=$5`,
+	_, err := tx.Exec(ctx, `UPDATE resources SET deletion_timestamp=$1, version=version+1 WHERE  resource_group=$2 AND kind=$3 AND namespace=$4 AND name=$5`,
 		deletionTimestamp, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	return err
 }
