@@ -694,6 +694,12 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
@@ -725,6 +731,12 @@ const docTemplate = `{
                 },
                 "current_version": {
                     "type": "integer"
+                },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "labels": {
                     "type": "object",

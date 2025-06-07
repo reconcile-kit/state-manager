@@ -683,6 +683,12 @@
                         "type": "string"
                     }
                 },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
@@ -714,6 +720,12 @@
                 },
                 "current_version": {
                     "type": "integer"
+                },
+                "finalizers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "labels": {
                     "type": "object",

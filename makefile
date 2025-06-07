@@ -1,6 +1,6 @@
 .PHONY: api
 
-api: gen-swagger openapi-client
+api: gen-swagger
 
 gen-swagger:
 	docker run --rm \
@@ -11,16 +11,3 @@ gen-swagger:
 	         $$(go env GOPATH)/bin/swag init \
 	             -g cmd/app/main.go \
 	             --parseDependency'
-
-openapi-client:
-	docker run --rm \
-	  -v "$(PWD):/src" \
-	  openapitools/openapi-generator-cli generate \
-	    -i /src/docs/swagger.json \
-	    --skip-validate-spec \
-	    -g go \
-	    -o /src/pkg/stateclient \
-	    --package-name stateclient \
-	    --additional-properties=withGoMod=false \
-	    --global-property apiTests=false,modelTests=false
-
