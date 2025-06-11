@@ -95,7 +95,7 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 	if err != nil {
 		return nil, err
 	}
-	const q = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, spec=$4, version=version+1, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version`
+	const q = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, spec=$4, version=version+1, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version, deletion_timestamp`
 	res := &dto.Resource{}
 	res.ResourceFields = opts.ResourceFields
 	res.Spec = opts.Spec
@@ -103,7 +103,7 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 	res.Finalizers = opts.Finalizers
 	row := tx.QueryRow(ctx, q,
 		opts.ShardID, opts.Finalizers, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
-	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version); err != nil {
+	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.DeletionTimestamp); err != nil {
 		return nil, err
 	}
 
@@ -126,7 +126,7 @@ func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts
 	if err != nil {
 		return nil, err
 	}
-	const q = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, status=$4, current_version=$5, updated_at=NOW() WHERE resource_group=$6 AND kind=$7 AND namespace=$8 AND name=$9 RETURNING created_at, updated_at, id, shard_id, version, current_version, spec`
+	const q = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, status=$4, current_version=$5, updated_at=NOW() WHERE resource_group=$6 AND kind=$7 AND namespace=$8 AND name=$9 RETURNING created_at, updated_at, id, shard_id, version, current_version, spec, deletion_timestamp`
 	res := &dto.Resource{}
 	res.ResourceFields = opts.ResourceFields
 	res.Annotations = opts.Annotations
@@ -134,7 +134,7 @@ func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts
 	res.Finalizers = opts.Finalizers
 	row := tx.QueryRow(ctx, q,
 		opts.ShardID, opts.Finalizers, opts.Annotations, opts.Status, opts.CurrentVersion, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
-	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.Spec); err != nil {
+	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.Spec, &res.DeletionTimestamp); err != nil {
 		return nil, err
 	}
 
