@@ -7,6 +7,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	_ "github.com/reconcile-kit/state-manager/docs"
 	"github.com/reconcile-kit/state-manager/internal/services/states"
+	mw "github.com/reconcile-kit/state-manager/pkg/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -29,6 +30,7 @@ func NewRouter(service *states.StateService) *chi.Mux {
 	handler := &Handler{service: service, validator: validator.New()}
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
+	r.Use(mw.AllowAllCORS)
 	// Группа маршрутов API
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/resources", func(r chi.Router) {
