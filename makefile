@@ -1,4 +1,4 @@
-.PHONY: api
+.PHONY: api gen-swagger build
 
 api: gen-swagger
 
@@ -11,3 +11,6 @@ gen-swagger:
 	         $$(go env GOPATH)/bin/swag init \
 	             -g cmd/app/main.go \
 	             --parseDependency'
+
+build:
+	docker build -t state-manager .
