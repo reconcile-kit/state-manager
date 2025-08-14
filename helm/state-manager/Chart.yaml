@@ -6,10 +6,10 @@ type: application
 version: 0.1.0
 appVersion: "v0.0.6"
 dependencies:
-- condition: redis-ha.enabled
-  name: redis-ha
-  repository: https://dandydeveloper.github.io/charts/
-  version: 4.33.2
+- condition: redis.enabled
+  name: redis
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 22.0.3
 - condition: postgresql.enabled
   name: postgresql
   repository: oci://registry-1.docker.io/bitnamicharts

@@ -137,7 +137,7 @@ redis:
 # External Redis parameters
 externalRedis:
   # -- Full url to redis, contains username, password, host and port
-  url: 
+  url: "redis-master:6379"
   # -- The name of an existing secret with Redis URL (must contain key `url`).
   # When it's set, the `externalRedis.url` parameter is ignored
   existingSecret: ""
@@ -148,7 +148,7 @@ externalRedis:
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
 postgresql:
   # -- Enables the PostgreSQL subchart
-  enabled: false
+  enabled: true
   ## PostgreSQL Image
   image:
     # -- Image registry
@@ -163,7 +163,7 @@ postgresql:
     # -- Name for a custom user to create
     username: state_manager
     # -- Password for the custom user to create
-    password: ""
+    password: "test"
     # -- Name for a custom database to create
     database: state_manager
     # -- Name of existing secret to use for PostgreSQL credentials
@@ -174,7 +174,7 @@ postgresql:
 # External PostgreSQL parameters
 externalPostgresql:
   # -- Full url to postgresql, contains username, password, host and port
-  url: 
+  url: ""
   # -- The name of an existing secret with PostgreSQL URL (must contain key `url`).
   # When it's set, the `externalPostgresql.url` parameter is ignored
   existingSecret: ""

@@ -60,3 +60,51 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create redis name and version as used by the chart label.
+*/}}
+{{- define "state-manager.redis.fullname" }}
+{{- $redis := (index .Values "redis") }}
+{{- $redisContext := dict "Chart" (dict "Name" "redis") "Release" .Release "Values" $redis }}
+{{- if $redis.enabled }}
+    {{ printf "%s-master" (include "common.names.fullname" $redisContext) }}
+{{- end }}
+{{- end }}
+
+{{/*
+Generate a endpoint to redis
+*/}}
+{{- define "state-manager.redis.endpoint" -}}
+{{- $redis := (index .Values "redis") }}
+{{- if $redis.enabled }}
+    {{- $redisContext := dict "Chart" (dict "Name" "redis") "Release" .Release "Values" $redis }}
+    {{- printf "%s:%s" (include "state-manager.redis.fullname" .) (toString $redisContext.Values.master.service.ports.redis) }}
+{{- else }}
+    {{- printf "%s" .Values.externalRedis.url }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create postgresql name and version as used by the chart label.
+*/}}
+{{- define "state-manager.postgresql.fullname" }}
+{{- $postgresql := (index .Values "postgresql") }}
+{{- $postgresqlContext := dict "Chart" (dict "Name" "postgresql") "Release" .Release "Values" $postgresql }}
+{{- if $postgresql.enabled }}
+    {{ include "postgresql.v1.primary.fullname" $postgresqlContext }}
+{{- end }}
+{{- end }}
+
+{{/*
+Generate a endpoint to postgresql
+*/}}
+{{- define "state-manager.postgresql.endpoint" -}}
+{{- $postgresql := (index .Values "postgresql") }}
+{{- if $postgresql.enabled }}
+    {{- $postgresqlContext := dict "Chart" (dict "Name" "postgresql") "Release" .Release "Values" $postgresql }}
+    {{- printf "postgresql://%s:%s@%s:%s/%s" (toString $postgresql.auth.username) (toString $postgresql.auth.password) (include "postgresql.v1.primary.fullname" $postgresqlContext) (include "postgresql.v1.service.port" $postgresqlContext) (toString $postgresql.auth.database) }}
+{{- else }}
+    {{- printf "%s" .Values.externalPostgresql.url }}
+{{- end }}
+{{- end }}

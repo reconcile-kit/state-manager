@@ -40,6 +40,36 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          {{- if or (.Values.redis.enabled) (and (.Values.externalRedis.url) (not .Values.externalRedis.existingSecret)) }}
+          - name: REDIS_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "state-manager.fullname" . }}-redis
+                key: REDIS_URL
+          {{- else if and (not .Values.redis.enabled) (and (not .Values.externalRedis.url) (.Values.externalRedis.existingSecret)) }}
+          - name: REDIS_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.externalRedis.existingSecret }}
+                key: url
+          {{- end }}
+          {{- if or (.Values.postgresql.enabled) (and (.Values.externalPostgresql.url) (not .Values.externalPostgresql.existingSecret)) }}
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "state-manager.fullname" . }}-postgresql
+                key: DATABASE_URL
+          {{- else if and (not .Values.postgresql.enabled) (and (not .Values.externalPostgresql.url) (.Values.externalPostgresql.existingSecret)) }}
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.externalPostgresql.existingSecret }}
+                key: url
+          {{- end }}
+          {{- with .Values.extraEnvs }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
