@@ -87,10 +87,12 @@ resources: {}
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
+  enabled: false
   httpGet:
     path: /
     port: http
 readinessProbe:
+  enabled: false
   httpGet:
     path: /
     port: http
@@ -112,21 +114,25 @@ extraEnvs: {}
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml
 redis:
   ## -- Enables the redis subchart
-  enabled: false
+  enabled: true
   ## Redis image
   image:
     # -- Image registry
     registry: docker.io
     # -- Image repository
-    repository: bitnami/redis
+    repository: bitnamilegacy/redis
     # -- Image tag
-    tag: 8.2.0-debian-12-r0
+    tag: 6.2.9-debian-11-r0
   # -- Redis architecture. Allowed values: `standalone` or `replication`
   architecture: standalone
   auth:
     # -- Enable password authentication
     enabled: false
   master:
+    livenessProbe:
+      enabled: false
+    readinessProbe:
+      enabled: false
     persistence:
       ## -- Enable persistence on Redis master nodes using Persistent Volume Claims
       enabled: false
@@ -137,7 +143,7 @@ redis:
 # External Redis parameters
 externalRedis:
   # -- Full url to redis, contains username, password, host and port
-  url: "redis-master:6379"
+  url: ""
   # -- The name of an existing secret with Redis URL (must contain key `url`).
   # When it's set, the `externalRedis.url` parameter is ignored
   existingSecret: ""
@@ -154,16 +160,16 @@ postgresql:
     # -- Image registry
     registry: docker.io
     # -- Image repository
-    repository: bitnami/postgresql
+    repository: bitnamilegacy/postgresql
     # -- Image tag
     tag: 16.3.0-debian-12-r22
   auth:
     # -- Password for the "postgres" admin user. Ignored if `auth.existingSecret` with key `postgres-password` is provided
-    postgresPassword: ""
+    postgresPassword: "postgres"
     # -- Name for a custom user to create
     username: state_manager
     # -- Password for the custom user to create
-    password: "test"
+    password: "state_manager"
     # -- Name for a custom database to create
     database: state_manager
     # -- Name of existing secret to use for PostgreSQL credentials

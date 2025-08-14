@@ -87,10 +87,12 @@ resources: {}
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
+  enabled: false
   httpGet:
     path: /
     port: http
 readinessProbe:
+  enabled: false
   httpGet:
     path: /
     port: http
@@ -109,6 +111,7 @@ configuration:
 extraEnvs: {}
 
 ## Redis subchart configuration
+## Use only for development purposes 
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml
 redis:
   ## -- Enables the redis subchart
@@ -118,9 +121,9 @@ redis:
     # -- Image registry
     registry: docker.io
     # -- Image repository
-    repository: bitnami/redis
+    repository: bitnamilegacy/redis
     # -- Image tag
-    tag: 8.2.0-debian-12-r0
+    tag: 6.2.9-debian-11-r0
   # -- Redis architecture. Allowed values: `standalone` or `replication`
   architecture: standalone
   auth:
@@ -145,6 +148,7 @@ externalRedis:
   secretAnnotations: {}
 
 ## PostgreSQL subchart configuration
+## Use only for development purposes
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
 postgresql:
   # -- Enables the PostgreSQL subchart
@@ -154,7 +158,7 @@ postgresql:
     # -- Image registry
     registry: docker.io
     # -- Image repository
-    repository: bitnami/postgresql
+    repository: bitnamilegacy/postgresql
     # -- Image tag
     tag: 16.3.0-debian-12-r22
   auth:

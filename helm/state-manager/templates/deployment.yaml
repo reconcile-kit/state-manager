@@ -45,7 +45,7 @@ spec:
           - name: REDIS_URL
             valueFrom:
               secretKeyRef:
-                name: {{ include "state-manager.fullname" . }}-redis
+                name: {{ include "state-manager.fullname" . }}-redis-env
                 key: REDIS_URL
           {{- else if and (not .Values.redis.enabled) (and (not .Values.externalRedis.url) (.Values.externalRedis.existingSecret)) }}
           - name: REDIS_URL
@@ -58,7 +58,7 @@ spec:
           - name: DATABASE_URL
             valueFrom:
               secretKeyRef:
-                name: {{ include "state-manager.fullname" . }}-postgresql
+                name: {{ include "state-manager.fullname" . }}-postgresql-env
                 key: DATABASE_URL
           {{- else if and (not .Values.postgresql.enabled) (and (not .Values.externalPostgresql.url) (.Values.externalPostgresql.existingSecret)) }}
           - name: DATABASE_URL
@@ -74,13 +74,17 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
           {{- with .Values.resources }}
           resources:

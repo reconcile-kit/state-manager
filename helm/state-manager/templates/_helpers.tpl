@@ -68,7 +68,7 @@ Create redis name and version as used by the chart label.
 {{- $redis := (index .Values "redis") }}
 {{- $redisContext := dict "Chart" (dict "Name" "redis") "Release" .Release "Values" $redis }}
 {{- if $redis.enabled }}
-    {{ printf "%s-master" (include "common.names.fullname" $redisContext) }}
+    {{- printf "%s-master" (include "common.names.fullname" $redisContext) }}
 {{- end }}
 {{- end }}
 
