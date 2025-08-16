@@ -107,7 +107,7 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 | Key                           | Type   | Default | Description                      |
 | ----------------------------- | ------ | ------: | -------------------------------- |
-| `resources`                   | map    |    `{}` | CPU/Memory requests & limits ([See more in documentation](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)).    |
+| `resources`                   | map    |    `{}` | CPU/Memory requests & limits ([see more in documentation](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)).    |
 | `livenessProbe.enabled`       | bool   | `false` | Enable liveness probe.           |
 | `livenessProbe.httpGet.path`  | string |     `/` | Path for liveness HTTP check.    |
 | `livenessProbe.httpGet.port`  | string |  `http` | Port name/number for liveness.   |
