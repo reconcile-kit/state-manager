@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 	"github.com/reconcile-kit/state-manager/config"
 	transport "github.com/reconcile-kit/state-manager/internal/http"
 	_ "github.com/reconcile-kit/state-manager/internal/migrations"
@@ -13,11 +16,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -31,9 +29,9 @@ func main() {
 		dbURL = builderURL
 	}
 
-	redisURL := os.Getenv("REDIS_URL")
-	if redisURL == "" {
-		panic("REDIS_URL environment variable not set")
+	redisURL, err := config.RedisURL()
+	if err != nil {
+		panic(err)
 	}
 
 	serverPort := os.Getenv("SERVER_PORT")
@@ -46,7 +44,11 @@ func main() {
 		panic(err)
 	}
 
-	redisClient := redis.NewClient(&redis.Options{Addr: redisURL, DialTimeout: 30 * time.Second})
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		log.Fatalf("invalid REDIS_URL: %v", err)
+	}
+	redisClient := redis.NewClient(opt)
 	defer redisClient.Close()
 	if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
 		panic(err)
