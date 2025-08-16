@@ -122,17 +122,13 @@ redis:
     # -- Image repository
     repository: bitnamilegacy/redis
     # -- Image tag
-    tag: 6.2.9-debian-11-r0
+    tag: 8.0.3-debian-12-r2
   # -- Redis architecture. Allowed values: `standalone` or `replication`
   architecture: standalone
   auth:
     # -- Enable password authentication
     enabled: false
   master:
-    livenessProbe:
-      enabled: false
-    readinessProbe:
-      enabled: false
     persistence:
       ## -- Enable persistence on Redis master nodes using Persistent Volume Claims
       enabled: false
