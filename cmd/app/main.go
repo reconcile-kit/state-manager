@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/reconcile-kit/state-manager/config"
 	transport "github.com/reconcile-kit/state-manager/internal/http"
 	_ "github.com/reconcile-kit/state-manager/internal/migrations"
 	"github.com/reconcile-kit/state-manager/internal/repositories/events"
@@ -23,12 +24,21 @@ func main() {
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		panic("DATABASE_URL environment variable not set")
+		builderURL, err := config.BuildPostgresDSN()
+		if err != nil {
+			panic(err)
+		}
+		dbURL = builderURL
 	}
 
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
 		panic("REDIS_URL environment variable not set")
+	}
+
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080"
 	}
 
 	pool, err := pgxpool.New(context.Background(), dbURL)
@@ -58,5 +68,5 @@ func main() {
 	stateService := states.NewStateService(resourceRepository, eventsRepo)
 	currentRouter := transport.NewRouter(stateService)
 
-	log.Fatal(http.ListenAndServe(":8080", currentRouter))
+	log.Fatal(http.ListenAndServe(":"+serverPort, currentRouter))
 }
