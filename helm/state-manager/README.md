@@ -61,6 +61,8 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### Core
 
+Configuration for replicas and the container image.
+
 | Key                | Type   |                   Default | Description                                           |
 | ------------------ | ------ | ------------------------: | ----------------------------------------------------- |
 | `replicaCount`     | int    |                       `1` | Number of replicas for the Deployment.                |
@@ -73,6 +75,8 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### Service Account
 
+Control creation and use of a ServiceAccount.
+
 | Key                          | Type   | Default | Description                           |
 | ---------------------------- | ------ | ------: | ------------------------------------- |
 | `serviceAccount.create`      | bool   | `false` | Create a ServiceAccount.              |
@@ -80,7 +84,9 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 | `serviceAccount.annotations` | map    |    `{}` | Annotations for the ServiceAccount.   |
 | `serviceAccount.name`        | string |    `""` | Use an existing ServiceAccount name (if `serviceAccount.create` is false) or setting the name of ServiceAccount (if `serviceAccount.create` is true)
 
-### Pods
+### Pod Settings
+
+Extra metadata and security context for Pods/containers.
 
 | Key                  | Type | Default | Description                        |
 | -------------------- | ---- | ------: | ---------------------------------- |
@@ -90,6 +96,8 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 | `securityContext`    | map  |    `{}` | Container-level security context.  |
 
 ### Service & Ingress
+
+Kubernetes Service and HTTP ingress configuration.
 
 | Key                                  | Type   |                  Default | Description             |
 | ------------------------------------ | ------ | -----------------------: | ----------------------- |
@@ -105,6 +113,8 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### Resources & Probes
 
+Resource requests/limits and basic HTTP probes.
+
 | Key                           | Type   | Default | Description                      |
 | ----------------------------- | ------ | ------: | -------------------------------- |
 | `resources`                   | map    |    `{}` | CPU/Memory requests & limits ([see more in documentation](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)).    |
@@ -117,22 +127,27 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### Autoscaling (HPA)
 
+Horizontal Pod Autoscaler settings.
+
 | Key                                             | Type | Default | Description                            |
 | ----------------------------------------------- | ---- | ------: | -------------------------------------- |
 | `autoscaling.enabled`                           | bool | `false` | Enable HorizontalPodAutoscaler.        |
 | `autoscaling.minReplicas`                       | int  |     `1` | Minimum replicas.                      |
 | `autoscaling.maxReplicas`                       | int  |   `100` | Maximum replicas.                      |
 | `autoscaling.targetCPUUtilizationPercentage`    | int  |    `80` | Target average CPU utilization.        |
-| `autoscaling.targetMemoryUtilizationPercentage` | int  | *unset* | (Optional) Target memory utilization.  |
+| `autoscaling.targetMemoryUtilizationPercentage` | int  |    `80` | (Optional) Target memory utilization.  |
 
 ### App Configuration
 
+Additional env vars for the app.
+
 | Key                         | Type | Default | Description                        |
 | --------------------------- | ---- | ------: | ---------------------------------- |
-| `configuration.annotations` | map  |    `{}` | Extra annotations for app configs (secrets).  |
 | `extraEnvs`                 | map  |    `{}` | Additional environment variables for pod.  |
 
 ### Redis (Subchart)
+
+Built-in Redis for development (not recommended for production).
 
 | Key                                | Type   |               Default | Description                        |
 | ---------------------------------- | ------ | --------------------: | ---------------------------------- |
@@ -141,13 +156,23 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### External Redis
 
-| Key                               | Type   | Default | Description                                                       |
-| --------------------------------- | ------ | ------: | ----------------------------------------------------------------- |
-| `externalRedis.url`               | string | (empty) | Full Redis URL (user\:pass\@host\:port).                          |
-| `externalRedis.existingSecret`    | string |    `""` | Secret name containing key `url`; overrides `externalRedis.url`.  |
-| `externalRedis.secretAnnotations` | map    |    `{}` | Annotations for the external Redis Secret.                        |
+Use an external Redis instead of the dev subchart.
+
+| Key                                         | Type   | Default | Description                                 |
+| ------------------------------------------- | ------ | ------: | ------------------------------------------- |
+| `externalRedis.host`                        | string |    `""` | Redis host.                                 |
+| `externalRedis.port`                        | int    |  `6379` | Redis port.                                 |
+| `externalRedis.scheme`                      | string | `redis` | Connection scheme (`redis`/`rediss`).       |
+| `externalRedis.db`                          | int    |     `0` | Database number.                            |
+| `externalRedis.auth.enabled`                | bool   | `false` | Enable username/password auth.              |
+| `externalRedis.auth.user`                   | string |    `""` | Username (if auth enabled).                 |
+| `externalRedis.auth.password`               | string |    `""` | Password (ignored if `existingSecret` set). |
+| `externalRedis.auth.existingSecret`         | string |    `""` | Existing Secret containing credentials. Overrides `externalRedis.auth.password`  |
+| `externalRedis.auth.secretKeys.passwordKey` | string |    `""` | Key name in the Secret for the password. Overrides `externalRedis.auth.password`  |
 
 ### PostgreSQL (Subchart)
+
+Built-in PostgreSQL for development (not recommended for production).
 
 | Key                                | Type   |                    Default | Description                                                       |
 | ---------------------------------- | ------ | -------------------------: | ----------------------------------------------------------------- |
@@ -156,13 +181,22 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ### External PostgreSQL
 
-| Key                                    | Type   | Default | Description                                                            |
-| -------------------------------------- | ------ | ------: | ---------------------------------------------------------------------- |
-| `externalPostgresql.url`               | string | (empty) | Full PostgreSQL URL (postgresql://user\:pass\@host\:port/db).                       |
-| `externalPostgresql.existingSecret`    | string |    `""` | Secret name containing key `url`; overrides `externalPostgresql.url`.  |
-| `externalPostgresql.secretAnnotations` | map    |    `{}` | Annotations for the external PostgreSQL Secret.                        |
+
+Use an external PostgreSQL instead of the dev subchart.
+
+| Key                                         | Type   |         Default | Description                                          |
+| ------------------------------------------- | ------ | --------------: | ---------------------------------------------------- |
+| `externalPostgresql.host`                   | string |            `""` | Database host.                                       |
+| `externalPostgresql.port`                   | int    |          `5000` | Database port.                                       |
+| `externalPostgresql.user`                   | string | `state_manager` | Database user.                                       |
+| `externalPostgresql.database`               | string | `state_manager` | Database name.                                       |
+| `externalPostgresql.password`               | string |          `test` | Database password (ignored if `existingSecret` set). |
+| `externalPostgresql.existingSecret`         | string |            `""` | Existing Secret containing DB parameters. Overrides `externalPostgresql.password`           |
+| `externalPostgresql.secretKeys.passwordKey` | string |            `""` | Key name in the Secret for the password. Overrides `externalPostgresql.password`            |
 
 ### Storage & Scheduling
+
+Extra volumes/mounts and pod scheduling preferences.
 
 | Key            | Type | Default | Description                        |
 | -------------- | ---- | ------: | ---------------------------------- |
@@ -174,22 +208,17 @@ All chart parameters with their defaults are listed below. Unless noted, values 
 
 ---
 
-## Examples
-
-**Use external managed services:**
-
-```bash
-helm install state-manager . -n state-manager \
-  --create-namespace \
-  --set externalRedis.existingSecret="redis-url" \
-  --set externalPostgresql.existingSecret="pg-url"
-```
-
-See `values.yaml` for all options and further comments in-line.
-
----
-
 ## Notes
 
 * Probes and HPA are disabled by default; enable and tune for production traffic.
-* If you set both `externalRedis.url` *and* `externalRedis.existingSecret`, the secret takes precedence (same for PostgreSQL).
+* If you set both `externalRedis.auth.password` and `externalRedis.existingSecret`, the secret takes precedence (same for PostgreSQL).
+* If you set both `externalRedis.host` and `redis.enabled`, the externalRedis configuration takes precedence (same for PostgreSQL).
+
+
+# Change Log
+
+## 0.2.0
+- Update version of state-manager application to [v0.0.8](https://github.com/reconcile-kit/state-manager/releases/tag/v0.0.8).
+- Change the way to configure the application
+- Supported secrets with password from subcharts
+- Changes on configuring external redis and postgresql credentials in values

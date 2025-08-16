@@ -73,15 +73,27 @@ Create redis name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Generate a endpoint to redis
+Generate a host to redis
 */}}
-{{- define "state-manager.redis.endpoint" -}}
+{{- define "state-manager.redis.host" -}}
+{{- $redis := (index .Values "redis") }}
+{{- if $redis.enabled }}
+    {{- printf "%s" (include "state-manager.redis.fullname" .) }}
+{{- else }}
+    {{- printf "%s" .Values.externalRedis.host }}
+{{- end }}
+{{- end }}
+
+{{/*
+Generate a port to redis
+*/}}
+{{- define "state-manager.redis.port" -}}
 {{- $redis := (index .Values "redis") }}
 {{- if $redis.enabled }}
     {{- $redisContext := dict "Chart" (dict "Name" "redis") "Release" .Release "Values" $redis }}
-    {{- printf "%s:%s" (include "state-manager.redis.fullname" .) (toString $redisContext.Values.master.service.ports.redis) }}
+    {{- printf "%s" (toString $redisContext.Values.master.service.ports.redis) }}
 {{- else }}
-    {{- printf "%s" .Values.externalRedis.url }}
+    {{- printf "%s" .Values.externalRedis.port }}
 {{- end }}
 {{- end }}
 
@@ -92,19 +104,31 @@ Create postgresql name and version as used by the chart label.
 {{- $postgresql := (index .Values "postgresql") }}
 {{- $postgresqlContext := dict "Chart" (dict "Name" "postgresql") "Release" .Release "Values" $postgresql }}
 {{- if $postgresql.enabled }}
-    {{ include "postgresql.v1.primary.fullname" $postgresqlContext }}
+    {{- include "postgresql.v1.primary.fullname" $postgresqlContext }}
 {{- end }}
 {{- end }}
 
 {{/*
-Generate a endpoint to postgresql
+Generate a host to postgresql
 */}}
-{{- define "state-manager.postgresql.endpoint" -}}
+{{- define "state-manager.postgresql.host" -}}
+{{- $postgresql := (index .Values "postgresql") }}
+{{- if $postgresql.enabled }}
+    {{- printf "%s" (include "state-manager.postgresql.fullname" .) }}
+{{- else }}
+    {{- printf "%s" .Values.externalPostgresql.host }}
+{{- end }}
+{{- end }}
+
+{{/*
+Generate a port to postgresql
+*/}}
+{{- define "state-manager.postgresql.port" -}}
 {{- $postgresql := (index .Values "postgresql") }}
 {{- if $postgresql.enabled }}
     {{- $postgresqlContext := dict "Chart" (dict "Name" "postgresql") "Release" .Release "Values" $postgresql }}
-    {{- printf "postgresql://%s:%s@%s:%s/%s" (toString $postgresql.auth.username) (toString $postgresql.auth.password) (include "postgresql.v1.primary.fullname" $postgresqlContext) (include "postgresql.v1.service.port" $postgresqlContext) (toString $postgresql.auth.database) }}
+    {{- printf "%s" (include "postgresql.v1.service.port" $postgresqlContext) }}
 {{- else }}
-    {{- printf "%s" .Values.externalPostgresql.url }}
+    {{- printf "%s" .Values.externalPostgresql.port }}
 {{- end }}
 {{- end }}

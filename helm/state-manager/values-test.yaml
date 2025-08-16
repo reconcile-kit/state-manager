@@ -105,12 +105,10 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-configuration:
-  annotations: {}
-
 extraEnvs: {}
 
 ## Redis subchart configuration
+## Use only for development purposes 
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml
 redis:
   ## -- Enables the redis subchart
@@ -128,6 +126,16 @@ redis:
   auth:
     # -- Enable password authentication
     enabled: false
+    # -- Redis password
+    ## Defaults to a random 10-character alphanumeric string if not set
+    password: ""
+    ## @param auth.existingSecret The name of an existing secret with Redis(R) credentials
+    ## NOTE: When it's set, the previous `auth.password` parameter is ignored
+    ##
+    existingSecret: ""
+    ## -- Password key to be retrieved from existing secret
+    ## Ignored unless `redis.auth.existingSecret` parameter is set
+    existingSecretPasswordKey: ""
   master:
     persistence:
       ## -- Enable persistence on Redis master nodes using Persistent Volume Claims
@@ -138,15 +146,29 @@ redis:
 
 # External Redis parameters
 externalRedis:
-  # -- Full url to redis, contains username, password, host and port
-  url: ""
-  # -- The name of an existing secret with Redis URL (must contain key `url`).
-  # When it's set, the `externalRedis.url` parameter is ignored
-  existingSecret: ""
-  # -- External Redis Secret annotations
-  secretAnnotations: {}
+  # -- Redis host
+  host: 
+  # -- Redis port
+  port: 6379
+  # -- Redis scheme
+  scheme: redis
+  # -- Redis database number
+  db: 0
+  auth:
+    enabled: false
+    # -- Redis username
+    user: 
+    # -- Redis password
+    password: 
+    # -- The name of an existing secret with Redis parameters
+    existingSecret: ""
+    secretKeys:
+      # -- Name of an existing secret key containing the database credentials
+      ## When it's set, the `externalRedis.password` parameter is ignored
+      passwordKey:
 
 ## PostgreSQL subchart configuration
+## Use only for development purposes
 # Ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
 postgresql:
   # -- Enables the PostgreSQL subchart
@@ -170,18 +192,32 @@ postgresql:
     database: state_manager
     # -- Name of existing secret to use for PostgreSQL credentials
     existingSecret: ""
+    # -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `postgresql.auth.existingSecret` is set.
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
   # -- PostgreSQL architecture (`standalone` or `replication`)
   architecture: standalone
 
 # External PostgreSQL parameters
 externalPostgresql:
-  # -- Full url to postgresql, contains username, password, host and port
-  url: ""
-  # -- The name of an existing secret with PostgreSQL URL (must contain key `url`).
-  # When it's set, the `externalPostgresql.url` parameter is ignored
+  # -- Database host
+  host: ""
+  # -- Database port number
+  port: 5000
+  # -- Non-root username for state-manager
+  user: state_manager
+  # -- Keycloak database name
+  database: state_manager
+  # -- Non-root username for state-manager
+  password: test
+  # -- The name of an existing secret with PostgreSQL parameters
   existingSecret: ""
-  # -- External PostgreSQL Secret annotations
-  secretAnnotations: {}
+  secretKeys:
+    # -- Name of an existing secret key containing the database credentials
+    ## When it's set, the `externalPostgresql.password` parameter is ignored
+    passwordKey:
 
 # Additional volumes on the output Deployment definition.
 volumes: []
