@@ -1,0 +1,16 @@
+apiVersion: v2
+name: state-manager
+description: Helm Chart for deploying to Kubernetes of service state-manager 
+  as a part of reconcile-kit 
+type: application
+version: 0.2.0
+appVersion: "0.0.8"
+dependencies:
+- condition: redis.enabled
+  name: redis
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 22.0.3
+- condition: postgresql.enabled
+  name: postgresql
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 15.x.x

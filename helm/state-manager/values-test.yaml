@@ -1,0 +1,239 @@
+# Default values for state-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: dhnikolas/state-manager
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 8080
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  enabled: false
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  enabled: false
+  httpGet:
+    path: /
+    port: http
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+extraEnvs: {}
+
+## Redis subchart configuration
+## Use only for development purposes 
+# Ref: https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml
+redis:
+  ## -- Enables the redis subchart
+  enabled: true
+  ## Redis image
+  image:
+    # -- Image registry
+    registry: docker.io
+    # -- Image repository
+    repository: bitnamilegacy/redis
+    # -- Image tag
+    tag: 8.0.3-debian-12-r2
+  # -- Redis architecture. Allowed values: `standalone` or `replication`
+  architecture: standalone
+  auth:
+    # -- Enable password authentication
+    enabled: false
+    # -- Redis password
+    ## Defaults to a random 10-character alphanumeric string if not set
+    password: ""
+    ## @param auth.existingSecret The name of an existing secret with Redis(R) credentials
+    ## NOTE: When it's set, the previous `auth.password` parameter is ignored
+    ##
+    existingSecret: ""
+    ## -- Password key to be retrieved from existing secret
+    ## Ignored unless `redis.auth.existingSecret` parameter is set
+    existingSecretPasswordKey: ""
+  master:
+    persistence:
+      ## -- Enable persistence on Redis master nodes using Persistent Volume Claims
+      enabled: false
+  networkPolicy:
+    # -- Enable creation of NetworkPolicy resources
+    enabled: false
+
+# External Redis parameters
+externalRedis:
+  # -- Redis host
+  host: 
+  # -- Redis port
+  port: 6379
+  # -- Redis scheme
+  scheme: redis
+  # -- Redis database number
+  db: 0
+  auth:
+    enabled: false
+    # -- Redis username
+    user: 
+    # -- Redis password
+    password: 
+    # -- The name of an existing secret with Redis parameters
+    existingSecret: ""
+    secretKeys:
+      # -- Name of an existing secret key containing the database credentials
+      ## When it's set, the `externalRedis.password` parameter is ignored
+      passwordKey:
+
+## PostgreSQL subchart configuration
+## Use only for development purposes
+# Ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+postgresql:
+  # -- Enables the PostgreSQL subchart
+  enabled: true
+  ## PostgreSQL Image
+  image:
+    # -- Image registry
+    registry: docker.io
+    # -- Image repository
+    repository: bitnamilegacy/postgresql
+    # -- Image tag
+    tag: 16.3.0-debian-12-r22
+  auth:
+    # -- Password for the "postgres" admin user. Ignored if `auth.existingSecret` with key `postgres-password` is provided
+    postgresPassword: "postgres"
+    # -- Name for a custom user to create
+    username: state_manager
+    # -- Password for the custom user to create
+    password: "state_manager"
+    # -- Name for a custom database to create
+    database: state_manager
+    # -- Name of existing secret to use for PostgreSQL credentials
+    existingSecret: ""
+    # -- Name of key in existing secret to use for PostgreSQL credentials. Only used when `postgresql.auth.existingSecret` is set.
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
+  # -- PostgreSQL architecture (`standalone` or `replication`)
+  architecture: standalone
+
+# External PostgreSQL parameters
+externalPostgresql:
+  # -- Database host
+  host: ""
+  # -- Database port number
+  port: 5000
+  # -- Non-root username for state-manager
+  user: state_manager
+  # -- Keycloak database name
+  database: state_manager
+  # -- Non-root username for state-manager
+  password: test
+  # -- The name of an existing secret with PostgreSQL parameters
+  existingSecret: ""
+  secretKeys:
+    # -- Name of an existing secret key containing the database credentials
+    ## When it's set, the `externalPostgresql.password` parameter is ignored
+    passwordKey:
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
