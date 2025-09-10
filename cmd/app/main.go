@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -39,6 +40,9 @@ func main() {
 		serverPort = "8080"
 	}
 
+	redisCertPath := os.Getenv("REDIS_CERT_PATH")
+	redisKeyPath := os.Getenv("REDIS_KEY_PATH")
+
 	pool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
 		panic(err)
@@ -48,6 +52,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("invalid REDIS_URL: %v", err)
 	}
+
+	if redisCertPath != "" && redisKeyPath != "" {
+		cert, err := tls.LoadX509KeyPair(redisCertPath, redisKeyPath)
+		if err != nil {
+			log.Fatalf("cannot init redis certs: %v", err)
+		}
+		opt.TLSConfig = &tls.Config{
+			InsecureSkipVerify: true,
+			Certificates:       []tls.Certificate{cert},
+		}
+	}
+
 	redisClient := redis.NewClient(opt)
 	defer redisClient.Close()
 	if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
