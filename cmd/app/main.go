@@ -62,6 +62,8 @@ func main() {
 			InsecureSkipVerify: true,
 			Certificates:       []tls.Certificate{cert},
 		}
+	} else {
+		opt.TLSConfig = &tls.Config{}
 	}
 
 	redisClient := redis.NewClient(opt)
