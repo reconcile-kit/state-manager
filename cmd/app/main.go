@@ -39,9 +39,7 @@ func main() {
 	if serverPort == "" {
 		serverPort = "8080"
 	}
-
-	redisCertPath := os.Getenv("REDIS_CERT_PATH")
-	redisKeyPath := os.Getenv("REDIS_KEY_PATH")
+	skipTLS := os.Getenv("REDIS_SKIP_TLS")
 
 	pool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
@@ -53,16 +51,7 @@ func main() {
 		log.Fatalf("invalid REDIS_URL: %v", err)
 	}
 
-	if redisCertPath != "" && redisKeyPath != "" {
-		cert, err := tls.LoadX509KeyPair(redisCertPath, redisKeyPath)
-		if err != nil {
-			log.Fatalf("cannot init redis certs: %v", err)
-		}
-		opt.TLSConfig = &tls.Config{
-			InsecureSkipVerify: true,
-			Certificates:       []tls.Certificate{cert},
-		}
-	} else {
+	if skipTLS == "" {
 		opt.TLSConfig = &tls.Config{}
 	}
 
