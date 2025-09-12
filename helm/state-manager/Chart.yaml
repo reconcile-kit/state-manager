@@ -3,8 +3,8 @@ name: state-manager
 description: Helm Chart for deploying to Kubernetes of service state-manager 
   as a part of reconcile-kit 
 type: application
-version: 0.2.0
-appVersion: "0.0.8"
+version: 0.2.2
+appVersion: "0.0.11"
 dependencies:
 - condition: redis.enabled
   name: redis

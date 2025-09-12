@@ -106,6 +106,22 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 extraEnvs: {}
+# - name: REDIS_SKIP_TLS
+#   value: ''
+# - name: REDIS_DIAL_TIMEOUT
+#   value: '1m'
+# - name: REDIS_READ_TIMEOUT
+#   value: '2s'
+# - name: REDIS_WRITE_TIMEOUT
+#   value: '2s'
+# - name: REDIS_POOL_SIZE
+#   value: '20'
+# - name: REDIS_MIN_IDLE_CONNS
+#   value: '5'
+# - name: REDIS_MAX_RETRIES
+#   value: '3'
+# - name: DATABASE_SSLMODE
+#   value: 'disable'
 
 ## Redis subchart configuration
 ## Use only for development purposes 
