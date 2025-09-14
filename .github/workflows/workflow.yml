@@ -46,27 +46,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  package-helm-chart:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: '3.18.6' # Specify your desired Helm version
-      
-      - name: Package Helm Chart
-        run: helm package ./helm/state-manager
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Push Helm Chart to OCI Registry
-        run: helm push state-manager-*.tgz oci://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
