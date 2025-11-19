@@ -2,9 +2,10 @@ package states
 
 import (
 	"context"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/reconcile-kit/state-manager/internal/dto"
-	"time"
 )
 
 type ResourceRepository interface {
@@ -14,6 +15,7 @@ type ResourceRepository interface {
 	Create(ctx context.Context, tx pgx.Tx, opts *dto.ResourceCreateOpts) (*dto.Resource, error)
 	Update(ctx context.Context, tx pgx.Tx, opts *dto.ResourceUpdateOpts) (*dto.Resource, error)
 	UpdateStatus(ctx context.Context, tx pgx.Tx, opts *dto.ResourceUpdateStatusOpts) (*dto.Resource, error)
+	UpdateLabels(ctx context.Context, tx pgx.Tx, resourceID int, updateLabels map[string]string, deleteLabels []string) error
 	SetDeletionTimestamp(ctx context.Context, tx pgx.Tx, opts *dto.ResourceID, deletionTimestamp time.Time) error
 	Delete(ctx context.Context, tx pgx.Tx, id int64) error
 	GetByResourceID(ctx context.Context, tx pgx.Tx, opts *dto.ResourceID) (*dto.Resource, error)

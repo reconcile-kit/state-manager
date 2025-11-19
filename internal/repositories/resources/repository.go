@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/reconcile-kit/state-manager/internal/dto"
-	"strings"
-	"time"
 )
 
 type PostgresResourceRepo struct {
@@ -81,12 +82,12 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts *dto.
 		}
 		return nil, err
 	}
-	for name, value := range opts.Labels {
-		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
-		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
-			return nil, err
-		}
+
+	err = r.insertLabelsBatch(ctx, tx, res.ID, opts.Labels)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create labels: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -107,17 +108,6 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 		return nil, err
 	}
 
-	// delete old labels
-	if _, err := tx.Exec(ctx, `DELETE FROM labels WHERE resource_id=$1`, res.ID); err != nil {
-		return nil, err
-	}
-	// insert new labels
-	for name, value := range opts.Labels {
-		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
-		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
-			return nil, err
-		}
-	}
 	return res, nil
 }
 
@@ -138,17 +128,6 @@ func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts
 		return nil, err
 	}
 
-	// delete old labels
-	if _, err := tx.Exec(ctx, `DELETE FROM labels WHERE resource_id=$1`, res.ID); err != nil {
-		return nil, err
-	}
-	// insert new labels
-	for name, value := range opts.Labels {
-		const li = `INSERT INTO labels (resource_id, name, value) VALUES ($1,$2,$3)`
-		if _, err := tx.Exec(ctx, li, res.ID, name, value); err != nil {
-			return nil, err
-		}
-	}
 	return res, nil
 }
 
@@ -310,7 +289,6 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.
 		return resources, nil
 	}
 
-	// Второй запрос: получаем все метки для найденных ресурсов
 	const labelQuery = `
         SELECT resource_id, name, value 
         FROM labels 
@@ -322,7 +300,6 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.
 	}
 	defer labelRows.Close()
 
-	// Маппинг меток к ресурсам
 	for labelRows.Next() {
 		var resourceID int
 		var name, value string
@@ -335,6 +312,89 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.
 	}
 
 	return resources, nil
+}
+
+func (r *PostgresResourceRepo) insertLabelsBatch(
+	ctx context.Context,
+	tx pgx.Tx,
+	resourceID int,
+	labels map[string]string,
+) error {
+	if len(labels) == 0 {
+		return nil
+	}
+
+	const baseSQL = `
+		INSERT INTO labels (resource_id, name, value)
+		VALUES `
+
+	var valuesParts []string
+	args := []interface{}{resourceID}
+	placeholderIdx := 2
+
+	for name, value := range labels {
+		valuesParts = append(valuesParts, fmt.Sprintf("($1, $%d, $%d)", placeholderIdx, placeholderIdx+1))
+		args = append(args, name, value)
+		placeholderIdx += 2
+	}
+
+	sql := baseSQL + strings.Join(valuesParts, ",")
+
+	_, err := tx.Exec(ctx, sql, args...)
+	return err
+}
+
+func (r *PostgresResourceRepo) UpdateLabels(ctx context.Context, tx pgx.Tx, resourceID int, updateLabels map[string]string, deleteLabels []string) error {
+	if len(updateLabels) > 0 {
+		const baseSQL = `
+		INSERT INTO labels (resource_id, name, value)
+		VALUES `
+
+		const onConflictSQL = `
+		ON CONFLICT ON CONSTRAINT labels_resource_id_name_key
+		DO UPDATE SET
+			value = EXCLUDED.value
+		WHERE labels.value IS DISTINCT FROM EXCLUDED.value
+	`
+
+		var valuesParts []string
+		args := []interface{}{resourceID}
+		placeholderIdx := 2
+
+		for name, value := range updateLabels {
+			valuesParts = append(valuesParts, fmt.Sprintf("($1, $%d, $%d)", placeholderIdx, placeholderIdx+1))
+			args = append(args, name, value)
+			placeholderIdx += 2
+		}
+
+		sql := baseSQL + strings.Join(valuesParts, ",") + onConflictSQL
+
+		_, err := tx.Exec(ctx, sql, args...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(deleteLabels) > 0 {
+		delArgs := []interface{}{resourceID}
+		var placeholders []string
+
+		for i, name := range deleteLabels {
+			delArgs = append(delArgs, name)
+			placeholders = append(placeholders, fmt.Sprintf("$%d", i+2))
+		}
+
+		deleteSQL := `
+		DELETE FROM labels
+		WHERE resource_id = $1
+		  AND name IN (` + strings.Join(placeholders, ",") + `)`
+
+		if _, err := tx.Exec(ctx, deleteSQL, delArgs...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func validateResourceID(ID *dto.ResourceID) error {

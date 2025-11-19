@@ -2,6 +2,8 @@ package states
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 )
@@ -27,6 +29,12 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 		result, err := s.repo.Update(ctx, tx, opts)
 		if err != nil {
 			return nil, err
+		}
+
+		toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
+		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toUpdate, toDelete)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update labels: %w", err)
 		}
 
 		err = s.eventsRepo.Add(ctx, result.ShardID, "update", result.ResourceID)
@@ -71,6 +79,12 @@ func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdat
 		result, err := s.repo.UpdateStatus(ctx, tx, opts)
 		if err != nil {
 			return nil, err
+		}
+
+		toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
+		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toUpdate, toDelete)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update labels: %w", err)
 		}
 
 		return result, nil
