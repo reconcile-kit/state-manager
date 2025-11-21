@@ -1,13 +1,14 @@
 package states
 
-func DiffLabels(oldLabels, newLabels map[string]string) (map[string]string, []string) {
+func DiffLabels(oldLabels, newLabels map[string]string) (map[string]string, map[string]string, []string) {
+	toAdd := make(map[string]string)
 	toUpdate := make(map[string]string)
 	toDelete := make([]string, 0)
 	for k, newVal := range newLabels {
 		oldVal, exists := oldLabels[k]
 
 		if !exists {
-			toUpdate[k] = newVal
+			toAdd[k] = newVal
 			continue
 		}
 
@@ -22,5 +23,5 @@ func DiffLabels(oldLabels, newLabels map[string]string) (map[string]string, []st
 		}
 	}
 
-	return toUpdate, toDelete
+	return toAdd, toUpdate, toDelete
 }

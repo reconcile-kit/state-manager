@@ -1,6 +1,8 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
@@ -31,7 +33,7 @@ func NewRouter(service *states.StateService) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(mw.AllowAllCORS)
-	// Группа маршрутов API
+	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/resources", func(r chi.Router) {
 			r.Get("/", handler.listResources)
@@ -45,7 +47,16 @@ func NewRouter(service *states.StateService) *chi.Mux {
 		})
 	})
 
-	// Маршрут для Swagger UI
+	r.Route("/health", func(r chi.Router) {
+		r.Get("/live", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+		r.Get("/ready", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+	})
+
+	// Route Swagger UI
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	return r

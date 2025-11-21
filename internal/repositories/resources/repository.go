@@ -83,9 +83,12 @@ func (r *PostgresResourceRepo) Create(ctx context.Context, tx pgx.Tx, opts *dto.
 		return nil, err
 	}
 
-	err = r.insertLabelsBatch(ctx, tx, res.ID, opts.Labels)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create labels: %w", err)
+	if len(opts.Labels) > 0 {
+		err = r.insertLabelsBatch(ctx, tx, res.ID, opts.Labels)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create labels: %w", err)
+		}
+
 	}
 
 	return res, nil
@@ -320,55 +323,51 @@ func (r *PostgresResourceRepo) insertLabelsBatch(
 	resourceID int,
 	labels map[string]string,
 ) error {
-	if len(labels) == 0 {
-		return nil
-	}
-
-	const baseSQL = `
-		INSERT INTO labels (resource_id, name, value)
-		VALUES `
-
-	var valuesParts []string
-	args := []interface{}{resourceID}
-	placeholderIdx := 2
-
+	insertSql := sqlbuilder.NewInsertBuilder()
+	insertSql.SetFlavor(sqlbuilder.PostgreSQL)
+	insertSql = insertSql.InsertInto("labels").Cols("resource_id", "name", "value")
 	for name, value := range labels {
-		valuesParts = append(valuesParts, fmt.Sprintf("($1, $%d, $%d)", placeholderIdx, placeholderIdx+1))
-		args = append(args, name, value)
-		placeholderIdx += 2
+		insertSql.Values(resourceID, name, value)
 	}
-
-	sql := baseSQL + strings.Join(valuesParts, ",")
-
+	sql, args := insertSql.Build()
 	_, err := tx.Exec(ctx, sql, args...)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *PostgresResourceRepo) UpdateLabels(ctx context.Context, tx pgx.Tx, resourceID int, updateLabels map[string]string, deleteLabels []string) error {
-	if len(updateLabels) > 0 {
-		const baseSQL = `
-		INSERT INTO labels (resource_id, name, value)
-		VALUES `
+func (r *PostgresResourceRepo) UpdateLabels(
+	ctx context.Context,
+	tx pgx.Tx,
+	resourceID int,
+	addLabels,
+	updateLabels map[string]string,
+	deleteLabels []string,
+) error {
+	if len(addLabels) > 0 {
+		err := r.insertLabelsBatch(ctx, tx, resourceID, addLabels)
+		if err != nil {
+			return fmt.Errorf("failed to add labels: %w", err)
+		}
+	}
 
-		const onConflictSQL = `
-		ON CONFLICT ON CONSTRAINT labels_resource_id_name_key
-		DO UPDATE SET
-			value = EXCLUDED.value
-		WHERE labels.value IS DISTINCT FROM EXCLUDED.value
-	`
+	if len(updateLabels) > 0 {
+		const baseSQL = `UPDATE labels AS l SET value = v.value FROM ( VALUES `
+		const asWhere = `) AS v(resource_id, name, value) WHERE l.resource_id = v.resource_id AND l.name = v.name;`
 
 		var valuesParts []string
 		args := []interface{}{resourceID}
 		placeholderIdx := 2
 
 		for name, value := range updateLabels {
-			valuesParts = append(valuesParts, fmt.Sprintf("($1, $%d, $%d)", placeholderIdx, placeholderIdx+1))
+			valuesParts = append(valuesParts,
+				fmt.Sprintf("($1::integer, $%d, $%d)", placeholderIdx, placeholderIdx+1))
 			args = append(args, name, value)
 			placeholderIdx += 2
 		}
 
-		sql := baseSQL + strings.Join(valuesParts, ",") + onConflictSQL
-
+		sql := baseSQL + strings.Join(valuesParts, ",") + asWhere
 		_, err := tx.Exec(ctx, sql, args...)
 		if err != nil {
 			return err
@@ -376,20 +375,14 @@ func (r *PostgresResourceRepo) UpdateLabels(ctx context.Context, tx pgx.Tx, reso
 	}
 
 	if len(deleteLabels) > 0 {
-		delArgs := []interface{}{resourceID}
-		var placeholders []string
-
-		for i, name := range deleteLabels {
-			delArgs = append(delArgs, name)
-			placeholders = append(placeholders, fmt.Sprintf("$%d", i+2))
-		}
-
-		deleteSQL := `
-		DELETE FROM labels
-		WHERE resource_id = $1
-		  AND name IN (` + strings.Join(placeholders, ",") + `)`
-
-		if _, err := tx.Exec(ctx, deleteSQL, delArgs...); err != nil {
+		deleteBuilder := sqlbuilder.NewDeleteBuilder()
+		deleteBuilder.SetFlavor(sqlbuilder.PostgreSQL)
+		deleteBuilder.DeleteFrom("labels").
+			Where(deleteBuilder.E("resource_id", resourceID)).
+			Where(deleteBuilder.In("name", toInterface(deleteLabels)...))
+		sql, args := deleteBuilder.Build()
+		_, err := tx.Exec(ctx, sql, args...)
+		if err != nil {
 			return err
 		}
 	}
@@ -402,4 +395,12 @@ func validateResourceID(ID *dto.ResourceID) error {
 		return fmt.Errorf("resource group, kind and namespace must be set")
 	}
 	return nil
+}
+
+func toInterface(s []string) []interface{} {
+	out := make([]interface{}, len(s))
+	for i, v := range s {
+		out[i] = v
+	}
+	return out
 }

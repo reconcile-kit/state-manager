@@ -31,8 +31,8 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 			return nil, err
 		}
 
-		toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
-		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toUpdate, toDelete)
+		toAdd, toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
+		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toAdd, toUpdate, toDelete)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update labels: %w", err)
 		}
@@ -81,8 +81,8 @@ func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdat
 			return nil, err
 		}
 
-		toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
-		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toUpdate, toDelete)
+		toAdd, toUpdate, toDelete := DiffLabels(currentResource.Labels, opts.Labels)
+		err = s.repo.UpdateLabels(ctx, tx, currentResource.ID, toAdd, toUpdate, toDelete)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update labels: %w", err)
 		}

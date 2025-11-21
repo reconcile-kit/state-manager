@@ -4,6 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -14,9 +18,6 @@ import (
 	"github.com/reconcile-kit/state-manager/internal/repositories/resources"
 	"github.com/reconcile-kit/state-manager/internal/services/states"
 	"github.com/redis/go-redis/v9"
-	"log"
-	"net/http"
-	"os"
 )
 
 func main() {
@@ -45,6 +46,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer pool.Close()
 
 	opt, err := redis.ParseURL(redisURL)
 	if err != nil {
@@ -65,12 +67,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer dbConn.Close()
+
 	if err := goose.SetDialect("postgres"); err != nil {
 		panic(err)
 	}
+	log.Println("Running database migrations...")
 	if err := goose.Up(dbConn, "/var"); err != nil {
-		panic(err)
+		log.Fatalf("Migration failed: %v", err)
 	}
+	log.Println("Database migrations done")
 
 	eventsRepo := events.NewRedisRepository(redisClient)
 	resourceRepository := resources.NewResourceRepository(pool)
