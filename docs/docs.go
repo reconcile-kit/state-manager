@@ -74,7 +74,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Resource created",
                         "schema": {
                             "allOf": [
@@ -361,7 +361,7 @@ const docTemplate = `{
         },
         "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status": {
             "put": {
-                "description": "Updates a resource with the provided details.",
+                "description": "Updates a resource status with the provided details.",
                 "consumes": [
                     "application/json"
                 ],
@@ -371,7 +371,7 @@ const docTemplate = `{
                 "tags": [
                     "resources"
                 ],
-                "summary": "Update a resource",
+                "summary": "Update a resource status",
                 "operationId": "updateResourceStatus",
                 "parameters": [
                     {
@@ -472,7 +472,7 @@ const docTemplate = `{
         },
         "/api/v1/resources": {
             "get": {
-                "description": "возвращает ресурсы по фильтру",
+                "description": "list resources by filter",
                 "consumes": [
                     "application/json"
                 ],
@@ -482,7 +482,7 @@ const docTemplate = `{
                 "tags": [
                     "resources"
                 ],
-                "summary": "List pending resources",
+                "summary": "List resources",
                 "operationId": "listResources",
                 "parameters": [
                     {
@@ -524,40 +524,49 @@ const docTemplate = `{
                         "type": "string",
                         "name": "shard_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Format: \u003ckey\u003e in (\u003cv1\u003e,\u003cv2\u003e),\u003ckey2\u003e in (\u003cv3\u003e). Support only IN (register doesnt matter). Values can be quoted. Max 6 values.",
+                        "name": "label_selector",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of pending resources",
+                        "description": "List of resources",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "spec": {
-                                            "type": "object",
-                                            "additionalProperties": true
-                                        },
-                                        "status": {
-                                            "type": "object",
-                                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "spec": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                            },
+                                            "status": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                            }
                                         }
                                     }
-                                }
-                            ]
+                                ]
+                            }
                         }
                     },
                     "400": {
-                        "description": "Invalid input\" example={\"error\":\"shard_ids is required\"}",
+                        "description": "Invalid input\" example={\"error\":\"Invalid label selector: parse error\"}",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Server error\" example={\"error\":\"Failed to list pending resources: database error\"}",
+                        "description": "Server error\" example={\"error\":\"Failed to get resources: database error\"}",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
@@ -655,6 +664,7 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
+                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -701,6 +711,7 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
+                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -739,6 +750,7 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
+                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -757,6 +769,32 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "resource.LabelSelector": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "operator": {
+                    "$ref": "#/definitions/resource.LabelSelectorOperator"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "resource.LabelSelectorOperator": {
+            "type": "string",
+            "enum": [
+                "In"
+            ],
+            "x-enum-varnames": [
+                "LabelSelectorOperatorIn"
+            ]
         }
     }
 }`

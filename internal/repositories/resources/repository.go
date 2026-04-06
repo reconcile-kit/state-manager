@@ -209,6 +209,67 @@ func (r *PostgresResourceRepo) GetByResourceID(ctx context.Context, tx pgx.Tx, o
 }
 
 func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
+	if len(listOpts.LabelSelectors) > 0 {
+		return r.listResourcesByLabels(ctx, listOpts)
+	}
+
+	return r.listResources(ctx, listOpts)
+}
+
+func (r *PostgresResourceRepo) UpdateLabels(
+	ctx context.Context,
+	tx pgx.Tx,
+	resourceID int,
+	addLabels,
+	updateLabels map[string]string,
+	deleteLabels []string,
+) error {
+	if len(addLabels) > 0 {
+		err := r.insertLabelsBatch(ctx, tx, resourceID, addLabels)
+		if err != nil {
+			return fmt.Errorf("failed to add labels: %w", err)
+		}
+	}
+
+	if len(updateLabels) > 0 {
+		const baseSQL = `UPDATE labels AS l SET value = v.value FROM ( VALUES `
+		const asWhere = `) AS v(resource_id, name, value) WHERE l.resource_id = v.resource_id AND l.name = v.name;`
+
+		var valuesParts []string
+		args := []interface{}{resourceID}
+		placeholderIdx := 2
+
+		for name, value := range updateLabels {
+			valuesParts = append(valuesParts,
+				fmt.Sprintf("($1::integer, $%d, $%d)", placeholderIdx, placeholderIdx+1))
+			args = append(args, name, value)
+			placeholderIdx += 2
+		}
+
+		sql := baseSQL + strings.Join(valuesParts, ",") + asWhere
+		_, err := tx.Exec(ctx, sql, args...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(deleteLabels) > 0 {
+		deleteBuilder := sqlbuilder.NewDeleteBuilder()
+		deleteBuilder.SetFlavor(sqlbuilder.PostgreSQL)
+		deleteBuilder.DeleteFrom("labels").
+			Where(deleteBuilder.E("resource_id", resourceID)).
+			Where(deleteBuilder.In("name", toInterface(deleteLabels)...))
+		sql, args := deleteBuilder.Build()
+		_, err := tx.Exec(ctx, sql, args...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *PostgresResourceRepo) listResources(ctx context.Context, listOpts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
 	sql := sqlbuilder.Select(
 		"id",
 		"shard_id",
@@ -317,6 +378,107 @@ func (r *PostgresResourceRepo) ListResources(ctx context.Context, listOpts *dto.
 	return resources, nil
 }
 
+func (r *PostgresResourceRepo) listResourcesByLabels(ctx context.Context, listOpts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
+	query, args, err := buildListResourceIDsQuery(listOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build list resourceIDs query: %w", err)
+	}
+	idRows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query resourceIDs: %w", err)
+	}
+	defer idRows.Close()
+
+	resourceIDs := make([]int, 0)
+	for idRows.Next() {
+		var resourceID int
+		if err := idRows.Scan(
+			&resourceID,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan resourceID: %w", err)
+		}
+
+		resourceIDs = append(resourceIDs, resourceID)
+	}
+	if err := idRows.Err(); err != nil {
+		return nil, fmt.Errorf("failed rows resourceIDs: %w", err)
+	}
+
+	if len(resourceIDs) == 0 {
+		return []*dto.Resource{}, nil
+	}
+
+	query, args = buildListResourcesByIDsQuery(resourceIDs)
+	resourceRows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query resources: %w", err)
+	}
+	defer resourceRows.Close()
+
+	resources := []*dto.Resource{}
+	resourceIDMap := make(map[int]*dto.Resource)
+
+	for resourceRows.Next() {
+		res := &dto.Resource{}
+		if err := resourceRows.Scan(
+			&res.ID,
+			&res.ShardID,
+			&res.ResourceGroup,
+			&res.Kind,
+			&res.Namespace,
+			&res.Name,
+			&res.CreatedAt,
+			&res.UpdatedAt,
+			&res.DeletionTimestamp,
+			&res.Finalizers,
+			&res.Annotations,
+			&res.Spec,
+			&res.Status,
+			&res.Version,
+			&res.CurrentVersion,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan resource: %w", err)
+		}
+
+		res.Labels = make(map[string]string)
+		resources = append(resources, res)
+		resourceIDMap[res.ID] = res
+	}
+	if err := resourceRows.Err(); err != nil {
+		return nil, fmt.Errorf("failed rows resources: %w", err)
+	}
+
+	const labelQuery = `
+        SELECT resource_id, name, value 
+        FROM labels 
+        WHERE resource_id = ANY($1)
+    `
+	labelRows, err := r.pool.Query(ctx, labelQuery, resourceIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer labelRows.Close()
+
+	for labelRows.Next() {
+		var (
+			resourceID  int
+			name, value string
+		)
+		if err := labelRows.Scan(&resourceID, &name, &value); err != nil {
+			return nil, err
+		}
+
+		if resource, exists := resourceIDMap[resourceID]; exists {
+			resource.Labels[name] = value
+		}
+	}
+	if err := labelRows.Err(); err != nil {
+		return nil, fmt.Errorf("failed rows labels: %w", err)
+	}
+
+	return resources, nil
+}
+
 func (r *PostgresResourceRepo) insertLabelsBatch(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -337,59 +499,6 @@ func (r *PostgresResourceRepo) insertLabelsBatch(
 	return nil
 }
 
-func (r *PostgresResourceRepo) UpdateLabels(
-	ctx context.Context,
-	tx pgx.Tx,
-	resourceID int,
-	addLabels,
-	updateLabels map[string]string,
-	deleteLabels []string,
-) error {
-	if len(addLabels) > 0 {
-		err := r.insertLabelsBatch(ctx, tx, resourceID, addLabels)
-		if err != nil {
-			return fmt.Errorf("failed to add labels: %w", err)
-		}
-	}
-
-	if len(updateLabels) > 0 {
-		const baseSQL = `UPDATE labels AS l SET value = v.value FROM ( VALUES `
-		const asWhere = `) AS v(resource_id, name, value) WHERE l.resource_id = v.resource_id AND l.name = v.name;`
-
-		var valuesParts []string
-		args := []interface{}{resourceID}
-		placeholderIdx := 2
-
-		for name, value := range updateLabels {
-			valuesParts = append(valuesParts,
-				fmt.Sprintf("($1::integer, $%d, $%d)", placeholderIdx, placeholderIdx+1))
-			args = append(args, name, value)
-			placeholderIdx += 2
-		}
-
-		sql := baseSQL + strings.Join(valuesParts, ",") + asWhere
-		_, err := tx.Exec(ctx, sql, args...)
-		if err != nil {
-			return err
-		}
-	}
-
-	if len(deleteLabels) > 0 {
-		deleteBuilder := sqlbuilder.NewDeleteBuilder()
-		deleteBuilder.SetFlavor(sqlbuilder.PostgreSQL)
-		deleteBuilder.DeleteFrom("labels").
-			Where(deleteBuilder.E("resource_id", resourceID)).
-			Where(deleteBuilder.In("name", toInterface(deleteLabels)...))
-		sql, args := deleteBuilder.Build()
-		_, err := tx.Exec(ctx, sql, args...)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func validateResourceID(ID *dto.ResourceID) error {
 	if ID.ResourceGroup == "" || ID.Kind == "" || ID.Namespace == "" || ID.Name == "" {
 		return fmt.Errorf("resource group, kind and namespace must be set")
@@ -397,7 +506,7 @@ func validateResourceID(ID *dto.ResourceID) error {
 	return nil
 }
 
-func toInterface(s []string) []interface{} {
+func toInterface[C comparable](s []C) []interface{} {
 	out := make([]interface{}, len(s))
 	for i, v := range s {
 		out[i] = v

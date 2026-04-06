@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/reconcile-kit/state-manager/internal/dto"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	apiresource "github.com/reconcile-kit/api/resource"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 type UpdateResourceRequest struct {
@@ -17,7 +19,7 @@ type UpdateResourceRequest struct {
 	Spec        json.RawMessage   `json:"spec"`
 }
 
-// updateResource обновляет ресурс
+// updateResource updates a resource
 // @Summary Update a resource
 // @Description Updates a resource with the provided details.
 // @ID updateResource
@@ -39,9 +41,12 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf(`{"error":"Invalid JSON: %h"}`, err), http.StatusBadRequest)
 		return
 	}
-
 	if err := h.validator.Struct(req); err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %h"}`, err), http.StatusBadRequest)
+		return
+	}
+	if err := apiresource.ValidateLabels(req.Labels); err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
 		return
 	}
 
@@ -82,9 +87,9 @@ type UpdateResourceStatusRequest struct {
 	CurrentVersion int               `json:"current_version"`
 }
 
-// updateResource обновляет ресурс
-// @Summary Update a resource
-// @Description Updates a resource with the provided details.
+// updateResourceStatus updates status of resource
+// @Summary Update a resource status
+// @Description Updates a resource status with the provided details.
 // @ID updateResourceStatus
 // @Tags resources
 // @Accept json
@@ -109,6 +114,11 @@ func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
 		return
 	}
+	if err := apiresource.ValidateLabels(req.Labels); err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"Validation failed: %s"}`, err), http.StatusBadRequest)
+		return
+	}
+
 	resourceUpdateStatusOpts := &dto.ResourceUpdateStatusOpts{
 		ResourceFields: dto.ResourceFields{
 			ResourceID: dto.ResourceID{
