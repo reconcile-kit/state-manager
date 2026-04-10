@@ -57,6 +57,10 @@ definitions:
       labels:
         additionalProperties:
           type: string
+        description: |-
+          Labels are validated:
+          - key: non-empty, <=255 chars, no '='
+          - value: <=255 chars, no '='
         type: object
       name:
         type: string
@@ -88,6 +92,10 @@ definitions:
       labels:
         additionalProperties:
           type: string
+        description: |-
+          Labels are validated:
+          - key: non-empty, <=255 chars, no '='
+          - value: <=255 chars, no '='
         type: object
       shard_id:
         type: string
@@ -113,6 +121,10 @@ definitions:
       labels:
         additionalProperties:
           type: string
+        description: |-
+          Labels are validated:
+          - key: non-empty, <=255 chars, no '='
+          - value: <=255 chars, no '='
         type: object
       shard_id:
         type: string
@@ -125,6 +137,23 @@ definitions:
     required:
     - shard_id
     type: object
+  resource.LabelSelector:
+    properties:
+      key:
+        type: string
+      operator:
+        $ref: '#/definitions/resource.LabelSelectorOperator'
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  resource.LabelSelectorOperator:
+    enum:
+    - In
+    type: string
+    x-enum-varnames:
+    - LabelSelectorOperatorIn
 info:
   contact: {}
 paths:
@@ -164,7 +193,7 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        "201":
           description: Resource created
           schema:
             allOf:
@@ -360,7 +389,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates a resource with the provided details.
+      description: Updates a resource status with the provided details.
       operationId: updateResourceStatus
       parameters:
       - description: Resource Group
@@ -426,14 +455,14 @@ paths:
             database error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
-      summary: Update a resource
+      summary: Update a resource status
       tags:
       - resources
   /api/v1/resources:
     get:
       consumes:
       - application/json
-      description: возвращает ресурсы по фильтру
+      description: list resources by filter
       operationId: listResources
       parameters:
       - in: query
@@ -460,32 +489,40 @@ paths:
       - in: query
         name: shard_id
         type: string
+      - description: 'Format: <key> in (<v1>,<v2>),<key2> in (<v3>). Support only
+          IN (register doesnt matter). Values can be quoted. Max 6 values.'
+        in: query
+        name: label_selector
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: List of pending resources
+          description: List of resources
           schema:
-            allOf:
-            - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
-            - properties:
-                spec:
-                  additionalProperties: true
-                  type: object
-                status:
-                  additionalProperties: true
-                  type: object
-              type: object
+            items:
+              allOf:
+              - $ref: '#/definitions/github_com_reconcile-kit_state-manager_internal_dto.Resource'
+              - properties:
+                  spec:
+                    additionalProperties: true
+                    type: object
+                  status:
+                    additionalProperties: true
+                    type: object
+                type: object
+            type: array
         "400":
-          description: Invalid input" example={"error":"shard_ids is required"}
+          description: 'Invalid input" example={"error":"Invalid label selector: parse
+            error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
-          description: 'Server error" example={"error":"Failed to list pending resources:
-            database error"}'
+          description: 'Server error" example={"error":"Failed to get resources: database
+            error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
-      summary: List pending resources
+      summary: List resources
       tags:
       - resources
 swagger: "2.0"

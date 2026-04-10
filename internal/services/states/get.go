@@ -2,6 +2,7 @@ package states
 
 import (
 	"context"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 )
@@ -20,6 +21,6 @@ func (s *StateService) GetByResourceID(ctx context.Context, opts *dto.ResourceID
 	return result, nil
 }
 
-func (s *StateService) ListPending(ctx context.Context, opts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
+func (s *StateService) ListResources(ctx context.Context, opts *dto.ListResourcesOpts) ([]*dto.Resource, error) {
 	return s.repo.ListResources(ctx, opts)
 }

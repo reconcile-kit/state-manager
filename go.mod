@@ -9,6 +9,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/json-iterator/go v1.1.12
 	github.com/pressly/goose/v3 v3.24.2
+	github.com/reconcile-kit/api v0.0.16
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4

@@ -3,6 +3,8 @@ package dto
 import (
 	"encoding/json"
 	"time"
+
+	apiresource "github.com/reconcile-kit/api/resource"
 )
 
 type ResourceID struct {
@@ -51,8 +53,9 @@ type ResourceUpdateStatusOpts struct {
 
 type ListResourcesOpts struct {
 	ResourceID
-	ShardID string `json:"shard_id"`
-	Pending bool   `json:"pending"`
+	ShardID        string `json:"shard_id"`
+	Pending        bool   `json:"pending"`
+	LabelSelectors []apiresource.LabelSelector
 
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
