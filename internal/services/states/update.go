@@ -19,6 +19,9 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 		if err != nil {
 			return nil, err
 		}
+		if opts.Version != nil && currentResource.Version != *opts.Version {
+			return nil, dto.ConflictError
+		}
 		if currentResource.DeletionTimestamp != nil && len(opts.Finalizers) == 0 {
 			err = s.repo.Delete(ctx, tx, int64(currentResource.ID))
 			if err != nil {
