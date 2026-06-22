@@ -100,19 +100,13 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 		return nil, err
 	}
 	const q = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, spec=$4, version=version+1, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 RETURNING created_at, updated_at, id, shard_id, version, current_version, deletion_timestamp, status`
-	const qWithVersion = `UPDATE resources SET shard_id=$1, finalizers=$2, annotations=$3, spec=$4, version=version+1, updated_at=NOW() WHERE resource_group=$5 AND kind=$6 AND namespace=$7 AND name=$8 AND version=$9 RETURNING created_at, updated_at, id, shard_id, version, current_version, deletion_timestamp, status`
 	res := &dto.Resource{}
 	res.ResourceFields = opts.ResourceFields
 	res.Spec = opts.Spec
 	res.Annotations = opts.Annotations
 	res.Finalizers = opts.Finalizers
 	args := []any{opts.ShardID, opts.Finalizers, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name}
-	query := q
-	if opts.Version != nil {
-		query = qWithVersion
-		args = append(args, *opts.Version)
-	}
-	row := tx.QueryRow(ctx, query, args...)
+	row := tx.QueryRow(ctx, q, args...)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.DeletionTimestamp, &res.Status); err != nil {
 		return nil, err
 	}
