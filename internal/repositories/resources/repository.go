@@ -114,9 +114,6 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 	}
 	row := tx.QueryRow(ctx, query, args...)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.DeletionTimestamp, &res.Status); err != nil {
-		if opts.Version != nil && errors.Is(err, pgx.ErrNoRows) {
-			return nil, dto.ConflictError
-		}
 		return nil, err
 	}
 
