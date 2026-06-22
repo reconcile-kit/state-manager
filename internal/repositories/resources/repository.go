@@ -105,8 +105,8 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 	res.Spec = opts.Spec
 	res.Annotations = opts.Annotations
 	res.Finalizers = opts.Finalizers
-	args := []any{opts.ShardID, opts.Finalizers, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name}
-	row := tx.QueryRow(ctx, q, args...)
+	row := tx.QueryRow(ctx, q,
+		opts.ShardID, opts.Finalizers, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.DeletionTimestamp, &res.Status); err != nil {
 		return nil, err
 	}
