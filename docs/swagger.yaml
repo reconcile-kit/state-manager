@@ -103,6 +103,8 @@ definitions:
         items:
           type: integer
         type: array
+      version:
+        type: integer
     required:
     - shard_id
     type: object
@@ -375,6 +377,11 @@ paths:
         "400":
           description: 'Invalid input" example={"error":"Validation failed: shard_id
             is required"}'
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "409":
+          description: 'Invalid input" example={"error":"Version conflict: resource
+            version not match"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
         "500":

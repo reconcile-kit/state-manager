@@ -17,6 +17,7 @@ type UpdateResourceRequest struct {
 	Annotations map[string]string `json:"annotations"`
 	Finalizers  []string          `json:"finalizers"`
 	Spec        json.RawMessage   `json:"spec"`
+	Version     *int              `json:"version,omitempty"`
 }
 
 // updateResource updates a resource
@@ -33,6 +34,7 @@ type UpdateResourceRequest struct {
 // @Param resource body UpdateResourceRequest{spec=map[string]interface{}} true "Resource details"
 // @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "Resource updated"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
+// @Failure 409 {object} ErrorResponse "Invalid input" example={"error":"Version conflict: resource version not match"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [put]
 func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
@@ -63,11 +65,16 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 			Annotations: req.Annotations,
 			Finalizers:  req.Finalizers,
 		},
-		Spec: req.Spec,
+		Spec:    req.Spec,
+		Version: req.Version,
 	}
 
 	resource, err := h.service.Update(r.Context(), resourceUpdateOpts)
 	if err != nil {
+		if errors.Is(err, dto.ConflictError) {
+			http.Error(w, fmt.Sprintf(`{"error":"Version conflict: %s"}`, err), http.StatusConflict)
+			return
+		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to update resource: %h"}`, err), http.StatusInternalServerError)
 		return
 	}

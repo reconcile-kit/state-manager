@@ -289,6 +289,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to update resource: database error\"}",
                         "schema": {
@@ -681,6 +687,9 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },

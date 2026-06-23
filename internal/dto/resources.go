@@ -42,6 +42,7 @@ type ResourceCreateOpts struct {
 type ResourceUpdateOpts struct {
 	ResourceFields `json:",inline"`
 	Spec           json.RawMessage `json:"spec"`
+	Version        *int            `json:"version,omitempty"`
 }
 
 type ResourceUpdateStatusOpts struct {
