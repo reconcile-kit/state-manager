@@ -2,11 +2,16 @@ package states
 
 import (
 	"context"
+
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/auth"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 func (s *StateService) Create(ctx context.Context, opts *dto.ResourceCreateOpts) (*dto.Resource, error) {
+	if err := s.authorize(ctx, auth.VerbCreate, &opts.ResourceID, opts.ShardID); err != nil {
+		return nil, err
+	}
 	return s.repo.TxWrap(ctx, func(tx pgx.Tx) (*dto.Resource, error) {
 		err := s.repo.Lock(ctx, tx, &opts.ResourceID)
 		if err != nil {

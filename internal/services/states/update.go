@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/auth"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
@@ -17,6 +18,9 @@ func (s *StateService) Update(ctx context.Context, opts *dto.ResourceUpdateOpts)
 		}
 		currentResource, err := s.repo.GetByResourceID(ctx, tx, &opts.ResourceID)
 		if err != nil {
+			return nil, err
+		}
+		if err = s.authorizeChange(ctx, auth.VerbUpdate, currentResource, opts.ShardID); err != nil {
 			return nil, err
 		}
 		if opts.Version != nil && currentResource.Version != *opts.Version {
@@ -62,6 +66,9 @@ func (s *StateService) UpdateStatus(ctx context.Context, opts *dto.ResourceUpdat
 		}
 		currentResource, err := s.repo.GetByResourceID(ctx, tx, &opts.ResourceID)
 		if err != nil {
+			return nil, err
+		}
+		if err = s.authorizeChange(ctx, auth.VerbUpdateStatus, currentResource, opts.ShardID); err != nil {
 			return nil, err
 		}
 		switch {

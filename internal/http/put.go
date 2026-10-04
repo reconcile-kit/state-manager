@@ -36,6 +36,9 @@ type UpdateResourceRequest struct {
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 409 {object} ErrorResponse "Invalid input" example={"error":"Version conflict: resource version not match"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [put]
 func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 	var req UpdateResourceRequest
@@ -71,6 +74,9 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.Update(r.Context(), resourceUpdateOpts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		if errors.Is(err, dto.ConflictError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Version conflict: %s"}`, err), http.StatusConflict)
 			return
@@ -110,6 +116,9 @@ type UpdateResourceStatusRequest struct {
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 409 {object} ErrorResponse "Invalid input" example={"error":"Version conflict: resource version not match"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status [put]
 func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 	var req UpdateResourceStatusRequest
@@ -146,6 +155,9 @@ func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.UpdateStatus(r.Context(), resourceUpdateStatusOpts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		if errors.Is(err, dto.ConflictError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Version conflict: %s"}`, err), http.StatusConflict)
 			return

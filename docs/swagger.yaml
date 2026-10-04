@@ -57,10 +57,6 @@ definitions:
       labels:
         additionalProperties:
           type: string
-        description: |-
-          Labels are validated:
-          - key: non-empty, <=255 chars, no '='
-          - value: <=255 chars, no '='
         type: object
       name:
         type: string
@@ -92,10 +88,6 @@ definitions:
       labels:
         additionalProperties:
           type: string
-        description: |-
-          Labels are validated:
-          - key: non-empty, <=255 chars, no '='
-          - value: <=255 chars, no '='
         type: object
       shard_id:
         type: string
@@ -123,10 +115,6 @@ definitions:
       labels:
         additionalProperties:
           type: string
-        description: |-
-          Labels are validated:
-          - key: non-empty, <=255 chars, no '='
-          - value: <=255 chars, no '='
         type: object
       shard_id:
         type: string
@@ -213,11 +201,22 @@ paths:
             is required"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to create resource:
             database error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new resource
       tags:
       - resources
@@ -258,10 +257,21 @@ paths:
             is required"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "404":
           description: 'Not found" example={"error":"Resource not found: no rows"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete a resource
       tags:
       - resources
@@ -313,10 +323,21 @@ paths:
             is required"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "404":
           description: 'Not found" example={"error":"Resource not found: no rows"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get a resource by key
       tags:
       - resources
@@ -379,6 +400,15 @@ paths:
             is required"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "409":
           description: 'Invalid input" example={"error":"Version conflict: resource
             version not match"}'
@@ -389,6 +419,8 @@ paths:
             database error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update a resource
       tags:
       - resources
@@ -452,6 +484,15 @@ paths:
             is required"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "409":
           description: 'Invalid input" example={"error":"Version conflict: resource
             version not match"}'
@@ -462,6 +503,8 @@ paths:
             database error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Update a resource status
       tags:
       - resources
@@ -524,12 +567,29 @@ paths:
             error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+        "401":
+          description: Missing or invalid token (only when authorization is enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
+        "403":
+          description: Not allowed by token permissions (only when authorization is
+            enabled)
+          schema:
+            $ref: '#/definitions/internal_http.ErrorResponse'
         "500":
           description: 'Server error" example={"error":"Failed to get resources: database
             error"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: List resources
       tags:
       - resources
+securityDefinitions:
+  BearerAuth:
+    description: '"Bearer <token>". Required only when AUTH_ENABLED=true.'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

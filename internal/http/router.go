@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -8,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	jsoniter "github.com/json-iterator/go"
 	_ "github.com/reconcile-kit/state-manager/docs"
+	"github.com/reconcile-kit/state-manager/internal/auth"
 	"github.com/reconcile-kit/state-manager/internal/services/states"
 	mw "github.com/reconcile-kit/state-manager/pkg/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -28,13 +30,29 @@ type Handler struct {
 	validator *validator.Validate
 }
 
-func NewRouter(service *states.StateService) *chi.Mux {
+// writeForbidden writes 403 if err is an authorization denial.
+func writeForbidden(w http.ResponseWriter, err error) bool {
+	if !errors.Is(err, auth.ErrForbidden) {
+		return false
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusForbidden)
+	jsonIter.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
+	return true
+}
+
+// NewRouter creates the HTTP router. A nil authenticator disables authentication,
+// the API then works without tokens as before.
+func NewRouter(service *states.StateService, authenticator *auth.Authenticator) *chi.Mux {
 	handler := &Handler{service: service, validator: validator.New()}
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(mw.AllowAllCORS)
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
+		if authenticator != nil {
+			r.Use(auth.Middleware(authenticator))
+		}
 		r.Route("/resources", func(r chi.Router) {
 			r.Get("/", handler.listResources)
 		})

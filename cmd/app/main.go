@@ -12,14 +12,20 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/reconcile-kit/state-manager/config"
+	"github.com/reconcile-kit/state-manager/internal/auth"
 	transport "github.com/reconcile-kit/state-manager/internal/http"
 	_ "github.com/reconcile-kit/state-manager/internal/migrations"
 	"github.com/reconcile-kit/state-manager/internal/repositories/events"
+	"github.com/reconcile-kit/state-manager/internal/repositories/permissions"
 	"github.com/reconcile-kit/state-manager/internal/repositories/resources"
 	"github.com/reconcile-kit/state-manager/internal/services/states"
 	"github.com/redis/go-redis/v9"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description "Bearer <token>". Required only when AUTH_ENABLED=true.
 func main() {
 
 	dbURL := os.Getenv("DATABASE_URL")
@@ -78,10 +84,37 @@ func main() {
 	}
 	log.Println("Database migrations done")
 
+	authCfg, err := config.AuthConfig()
+	if err != nil {
+		log.Fatalf("invalid auth config: %v", err)
+	}
+	var (
+		authenticator *auth.Authenticator
+		authorizer    auth.Authorizer = auth.NoopAuthorizer{}
+	)
+	if authCfg.Enabled {
+		verifier, err := auth.NewVerifier(context.Background(), authCfg)
+		if err != nil {
+			log.Fatalf("failed to init token verifier: %v", err)
+		}
+		var ruleStore auth.RuleStore
+		if authCfg.PermissionsSource != auth.SourceClaims {
+			ruleStore = permissions.NewPermissionsRepository(pool)
+		}
+		authenticator, err = auth.NewAuthenticator(authCfg, verifier, ruleStore)
+		if err != nil {
+			log.Fatalf("failed to init authenticator: %v", err)
+		}
+		authorizer = auth.RulesAuthorizer{}
+		log.Printf("Authorization enabled, permissions source: %s", authCfg.PermissionsSource)
+	} else {
+		log.Println("Authorization disabled")
+	}
+
 	eventsRepo := events.NewRedisRepository(redisClient)
 	resourceRepository := resources.NewResourceRepository(pool)
-	stateService := states.NewStateService(resourceRepository, eventsRepo)
-	currentRouter := transport.NewRouter(stateService)
+	stateService := states.NewStateService(resourceRepository, eventsRepo, authorizer)
+	currentRouter := transport.NewRouter(stateService, authenticator)
 
 	log.Fatal(http.ListenAndServe(":"+serverPort, currentRouter))
 }

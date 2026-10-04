@@ -2,9 +2,11 @@ package states
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
-	"github.com/reconcile-kit/state-manager/internal/dto"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/auth"
+	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
 func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
@@ -15,6 +17,9 @@ func (s *StateService) Delete(ctx context.Context, opts *dto.ResourceID) error {
 		}
 		currentResource, err := s.repo.GetByResourceID(ctx, tx, opts)
 		if err != nil {
+			return nil, err
+		}
+		if err = s.authorize(ctx, auth.VerbDelete, &currentResource.ResourceID, currentResource.ShardID); err != nil {
 			return nil, err
 		}
 		if len(currentResource.Finalizers) == 0 {
