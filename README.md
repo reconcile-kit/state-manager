@@ -189,3 +189,5 @@ UPDATE auth_role_bindings SET disabled = true WHERE subject_value = 'billing-con
 
 - `401` — missing, expired or invalid token.
 - `403` — the token is valid, but no rule allows the operation.
+
+<!-- test PR 2: e2e CI check, do not merge -->
