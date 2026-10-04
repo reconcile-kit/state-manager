@@ -3,8 +3,10 @@ module github.com/reconcile-kit/state-manager
 go 1.24.2
 
 require (
+	github.com/MicahParks/keyfunc/v3 v3.8.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/huandu/go-sqlbuilder v1.35.0
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/json-iterator/go v1.1.12
@@ -17,6 +19,7 @@ require (
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/MicahParks/jwkset v0.11.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
@@ -44,6 +47,7 @@ require (
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

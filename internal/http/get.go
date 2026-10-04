@@ -26,6 +26,9 @@ import (
 // @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "Resource found"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: resource_group is required"}
 // @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [get]
 func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	opts := &dto.ResourceID{
@@ -42,6 +45,9 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.GetByResourceID(r.Context(), opts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		if errors.Is(err, dto.NotFoundError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Resource not found: %s"}`, opts.Name), http.StatusNotFound)
 			return
@@ -67,6 +73,9 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "List of resources"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Invalid label selector: parse error"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to get resources: database error"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/resources [get]
 func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	labelSelectors, err := apiresource.ParseLabelSelectors(r.URL.Query().Get("label_selector"))
@@ -101,6 +110,9 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 
 	resources, err := h.service.ListResources(r.Context(), listOpts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to get resources: %s"}`, err), http.StatusInternalServerError)
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/reconcile-kit/state-manager/internal/auth"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 )
 
@@ -29,8 +30,13 @@ type EventsRepository interface {
 type StateService struct {
 	repo       ResourceRepository
 	eventsRepo EventsRepository
+	authorizer auth.Authorizer
 }
 
-func NewStateService(repo ResourceRepository, eventsRepo EventsRepository) *StateService {
-	return &StateService{repo: repo, eventsRepo: eventsRepo}
+// NewStateService creates a service. A nil authorizer disables authorization.
+func NewStateService(repo ResourceRepository, eventsRepo EventsRepository, authorizer auth.Authorizer) *StateService {
+	if authorizer == nil {
+		authorizer = auth.NoopAuthorizer{}
+	}
+	return &StateService{repo: repo, eventsRepo: eventsRepo, authorizer: authorizer}
 }

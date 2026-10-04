@@ -34,6 +34,9 @@ type CreateResourceRequest struct {
 // @Success 201 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}}  "Resource created"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to create resource: database error"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources [post]
 func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 	var req CreateResourceRequest
@@ -68,6 +71,9 @@ func (h *Handler) createResource(w http.ResponseWriter, r *http.Request) {
 
 	resource, err := h.service.Create(r.Context(), resourceCreateOpts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		if errors.Is(err, dto.AlreadyExistsError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Already exists: %s"}`, err), http.StatusBadRequest)
 			return

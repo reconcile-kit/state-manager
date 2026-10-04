@@ -77,3 +77,115 @@ REDIS_PASSWORD=s3cr3t
 REDIS_DB=0
 SERVER_PORT=8080
 ```
+# Authorization
+
+Authorization is **disabled by default**: without `AUTH_ENABLED=true` the API works without tokens exactly as before.
+
+When enabled, every `/api/v1/*` request must carry `Authorization: Bearer <JWT>`.
+Tokens are issued by an external IdP; the service only verifies them (signature, `iss`, `aud`, `exp`, `nbf`).
+`/health/*` and `/swagger/*` stay public.
+
+| Variable                     | Required | Default       | Description                                                                                           |
+|------------------------------|----------|---------------|-------------------------------------------------------------------------------------------------------|
+| `AUTH_ENABLED`               | no       | `false`       | Enables JWT authentication and authorization.                                                         |
+| `AUTH_OIDC_ISSUER_URL`       | one of*  | —             | OIDC issuer, JWKS URL is taken from `/.well-known/openid-configuration`.                              |
+| `AUTH_JWKS_URL`              | one of*  | —             | JWKS URL. Keys are kept in memory, refreshed in background and on unknown `kid`.                      |
+| `AUTH_JWT_PUBLIC_KEY_FILE`   | one of*  | —             | PEM file with a public key or certificate.                                                            |
+| `AUTH_JWKS_REFRESH_INTERVAL` | no       | `1h`          | JWKS background refresh interval.                                                                     |
+| `AUTH_ISSUER`                | yes      | `AUTH_OIDC_ISSUER_URL` | Expected `iss`.                                                                              |
+| `AUTH_AUDIENCE`              | no       | —             | Expected `aud`. Strongly recommended.                                                                 |
+| `AUTH_ALGORITHMS`            | no       | `RS256,ES256` | Allowed algorithms. Only asymmetric: `RS*`, `PS*`, `ES*`, `EdDSA`.                                    |
+| `AUTH_CLOCK_SKEW`            | no       | `30s`         | Leeway for `exp` / `nbf`.                                                                             |
+| `AUTH_SUBJECT_CLAIM`         | no       | `sub`         | Claim with the caller identity (e.g. `client_id`, `azp`). Dotted path for nested claims.              |
+| `AUTH_GROUPS_CLAIM`          | no       | `groups`      | Claim with caller groups (array of strings).                                                          |
+| `AUTH_PERMISSIONS_CLAIM`     | no       | `permissions` | Claim with inline rules, e.g. `resource_access.state-manager.permissions`.                            |
+| `AUTH_PERMISSIONS_SOURCE`    | no       | `auto`        | `auto`: claim if present, otherwise DB. `claims`: claim only, DB is never queried. `db`: DB only.     |
+
+\* Exactly one key source must be set.
+
+## Rules
+
+A caller has a list of rules. Rules only allow (there is no deny), access is granted if **any** rule matches.
+A missing field, an empty string or `*` means "any value".
+
+```json
+{
+  "verbs": ["get", "list", "update_status"],
+  "resource_group": "*",
+  "namespace": "team-a",
+  "kind": "Pod",
+  "name": "*",
+  "shard_id": "shard-1"
+}
+```
+
+Verbs: `get`, `list`, `create`, `update` (spec), `update_status`, `delete`, `*`.
+
+| Operation                  | Checked against                                                                 |
+|----------------------------|---------------------------------------------------------------------------------|
+| `create`                   | path + `name` and `shard_id` from body                                          |
+| `get`, `delete`            | the stored resource (including its `shard_id`)                                  |
+| `update`, `update_status`  | the stored resource **and** the new `shard_id` from body (no moving to a foreign shard) |
+| `list`                     | the request filter must be fully covered by a single rule (see below)           |
+
+### List
+
+The list result is never filtered by permissions. Like in Kubernetes RBAC, the request filter
+must fit into one rule: every field restricted by the rule must be present in the query with the same value.
+Otherwise the request fails with `403`.
+
+Example: rules `{"verbs":["get","list"],"shard_id":"5"}` and `{"verbs":["get","list"],"kind":"user"}`.
+
+| Request                         | Result |
+|---------------------------------|--------|
+| `?shard_id=5`                   | ✅     |
+| `?kind=user`                    | ✅     |
+| `?kind=user&namespace=x`        | ✅     |
+| `?shard_id=5&kind=order`        | ✅     |
+| `?kind=order`                   | ❌ 403 |
+| no filter                       | ❌ 403 |
+
+## Rules in the token
+
+With `AUTH_PERMISSIONS_SOURCE=auto` or `claims` the rules can be put into the token, no database query is made:
+
+```json
+{
+  "iss": "https://idp.example.com",
+  "aud": "state-manager",
+  "sub": "billing-controller",
+  "exp": 1790000000,
+  "permissions": [
+    {"verbs": ["get", "list", "update_status"], "shard_id": "5"},
+    {"verbs": ["get", "list"], "kind": "user"}
+  ]
+}
+```
+
+## Rules in the database (service accounts)
+
+With `AUTH_PERMISSIONS_SOURCE=auto` (token without the permissions claim) or `db`, rules are loaded
+from roles bound to the token subject or any of its groups. One indexed query per request.
+
+```sql
+INSERT INTO auth_roles (name, description) VALUES ('shard-5-controller', 'Controller of shard 5');
+
+INSERT INTO auth_role_rules (role_id, verbs, shard_id)
+SELECT id, '{get,list,update_status}', '5' FROM auth_roles WHERE name = 'shard-5-controller';
+
+-- bind to a token subject (sub / AUTH_SUBJECT_CLAIM)
+INSERT INTO auth_role_bindings (role_id, subject_kind, subject_value)
+SELECT id, 'subject', 'billing-controller' FROM auth_roles WHERE name = 'shard-5-controller';
+
+-- or to a group from AUTH_GROUPS_CLAIM
+INSERT INTO auth_role_bindings (role_id, subject_kind, subject_value)
+SELECT id, 'group', 'controllers' FROM auth_roles WHERE name = 'shard-5-controller';
+
+-- revoke without deleting
+UPDATE auth_role_bindings SET disabled = true WHERE subject_value = 'billing-controller';
+```
+
+## Responses
+
+- `401` — missing, expired or invalid token.
+- `403` — the token is valid, but no rule allows the operation.

@@ -21,6 +21,9 @@ import (
 // @Success 204
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Deletion failed: resource_group is required"}
 // @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
+// @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
+// @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
+// @Security BearerAuth
 // @Router /api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name} [delete]
 func (h *Handler) deleteResource(w http.ResponseWriter, r *http.Request) {
 	opts := &dto.ResourceID{
@@ -37,6 +40,9 @@ func (h *Handler) deleteResource(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.Delete(r.Context(), opts)
 	if err != nil {
+		if writeForbidden(w, err) {
+			return
+		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to delete resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}

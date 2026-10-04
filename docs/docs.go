@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new resource with the provided details.",
                 "consumes": [
                     "application/json"
@@ -103,6 +108,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Server error\" example={\"error\":\"Failed to create resource: database error\"}",
                         "schema": {
@@ -114,6 +131,11 @@ const docTemplate = `{
         },
         "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves a resource by its resource_group, kind, namespace, and name.",
                 "consumes": [
                     "application/json"
@@ -186,6 +208,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
                         "schema": {
@@ -195,6 +229,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates a resource with the provided details.",
                 "consumes": [
                     "application/json"
@@ -289,6 +328,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
                         "schema": {
@@ -304,6 +355,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a resource by its resource_group, kind, namespace, and name.",
                 "consumes": [
                     "application/json"
@@ -356,6 +412,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
                         "schema": {
@@ -367,6 +435,11 @@ const docTemplate = `{
         },
         "/api/v1/groups/{resource_group}/namespaces/{namespace}/kinds/{kind}/resources/{name}/status": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates a resource status with the provided details.",
                 "consumes": [
                     "application/json"
@@ -461,6 +534,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
                         "schema": {
@@ -478,6 +563,11 @@ const docTemplate = `{
         },
         "/api/v1/resources": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "list resources by filter",
                 "consumes": [
                     "application/json"
@@ -567,6 +657,18 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid input\" example={\"error\":\"Invalid label selector: parse error\"}",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid token (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not allowed by token permissions (only when authorization is enabled)",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
@@ -670,7 +772,6 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
-                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -687,9 +788,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                },
-                "version": {
-                    "type": "integer"
                 }
             }
         },
@@ -720,7 +818,6 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
-                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -734,6 +831,9 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -759,7 +859,6 @@ const docTemplate = `{
                     }
                 },
                 "labels": {
-                    "description": "Labels are validated:\n- key: non-empty, \u003c=255 chars, no '='\n- value: \u003c=255 chars, no '='",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -804,6 +903,14 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "LabelSelectorOperatorIn"
             ]
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "\"Bearer \u003ctoken\u003e\". Required only when AUTH_ENABLED=true.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
