@@ -414,7 +414,7 @@
                         }
                     },
                     "404": {
-                        "description": "Not found\" example={\"error\":\"Resource not found: no rows\"}",
+                        "description": "Not found\" example={\"error\":\"Resource not found: resource1\"}",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }

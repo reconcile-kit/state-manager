@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/reconcile-kit/state-manager/internal/dto"
@@ -20,7 +21,7 @@ import (
 // @Param name path string true "Name" example="resource1"
 // @Success 204
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Deletion failed: resource_group is required"}
-// @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: no rows"}
+// @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: resource1"}
 // @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
 // @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
 // @Security BearerAuth
@@ -41,6 +42,10 @@ func (h *Handler) deleteResource(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Delete(r.Context(), opts)
 	if err != nil {
 		if writeForbidden(w, err) {
+			return
+		}
+		if errors.Is(err, dto.NotFoundError) {
+			http.Error(w, fmt.Sprintf(`{"error":"Resource not found: %s"}`, opts.Name), http.StatusNotFound)
 			return
 		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to delete resource: %s"}`, err), http.StatusInternalServerError)
