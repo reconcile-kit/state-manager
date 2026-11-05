@@ -267,7 +267,8 @@ paths:
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
         "404":
-          description: 'Not found" example={"error":"Resource not found: no rows"}'
+          description: 'Resource not found" example={"error":"Resource not found:
+            resource1"}'
           schema:
             $ref: '#/definitions/internal_http.ErrorResponse'
       security:
