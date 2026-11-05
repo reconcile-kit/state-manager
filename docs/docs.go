@@ -425,7 +425,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Resource not found\" example={\"error\":\"Resource not found: resource1\"}",
+                        "description": "Not found\" example={\"error\":\"Resource not found: resource1\"}",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }

@@ -21,7 +21,7 @@ import (
 // @Param name path string true "Name" example="resource1"
 // @Success 204
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Deletion failed: resource_group is required"}
-// @Failure 404 {object} ErrorResponse "Resource not found" example={"error":"Resource not found: resource1"}
+// @Failure 404 {object} ErrorResponse "Not found" example={"error":"Resource not found: resource1"}
 // @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
 // @Failure 403 {object} ErrorResponse "Not allowed by token permissions (only when authorization is enabled)"
 // @Security BearerAuth
