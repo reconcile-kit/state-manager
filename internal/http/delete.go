@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/reconcile-kit/state-manager/internal/dto"
@@ -41,6 +42,10 @@ func (h *Handler) deleteResource(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Delete(r.Context(), opts)
 	if err != nil {
 		if writeForbidden(w, err) {
+			return
+		}
+		if errors.Is(err, dto.NotFoundError) {
+			http.Error(w, fmt.Sprintf(`{"error":"Resource not found: %s"}`, opts.Name), http.StatusNotFound)
 			return
 		}
 		http.Error(w, fmt.Sprintf(`{"error":"Failed to delete resource: %s"}`, err), http.StatusInternalServerError)
