@@ -34,6 +34,7 @@ type UpdateResourceRequest struct {
 // @Param resource body UpdateResourceRequest{spec=map[string]interface{}} true "Resource details"
 // @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}} "Resource updated"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
+// @Failure 404 {object} ErrorResponse "Resource not found" example={"error":"Resource not found: resource1"}
 // @Failure 409 {object} ErrorResponse "Invalid input" example={"error":"Version conflict: resource version not match"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
 // @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
@@ -77,11 +78,18 @@ func (h *Handler) updateResource(w http.ResponseWriter, r *http.Request) {
 		if writeForbidden(w, err) {
 			return
 		}
+		if errors.Is(err, dto.NotFoundError) {
+			http.Error(w,
+				fmt.Sprintf(`{"error":"Resource not found: %s"}`, resourceUpdateOpts.Name),
+				http.StatusNotFound,
+			)
+			return
+		}
 		if errors.Is(err, dto.ConflictError) {
 			http.Error(w, fmt.Sprintf(`{"error":"Version conflict: %s"}`, err), http.StatusConflict)
 			return
 		}
-		http.Error(w, fmt.Sprintf(`{"error":"Failed to update resource: %h"}`, err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"Failed to update resource: %s"}`, err), http.StatusInternalServerError)
 		return
 	}
 
@@ -114,6 +122,7 @@ type UpdateResourceStatusRequest struct {
 // @Param resource body UpdateResourceStatusRequest{status=map[string]interface{}} true "Resource details"
 // @Success 200 {object} dto.Resource{spec=map[string]interface{},status=map[string]interface{}}  "Resource updated"
 // @Failure 400 {object} ErrorResponse "Invalid input" example={"error":"Validation failed: shard_id is required"}
+// @Failure 404 {object} ErrorResponse "Resource not found" example={"error":"Resource not found: resource1"}
 // @Failure 409 {object} ErrorResponse "Invalid input" example={"error":"Version conflict: resource version not match"}
 // @Failure 500 {object} ErrorResponse "Server error" example={"error":"Failed to update resource: database error"}
 // @Failure 401 {object} ErrorResponse "Missing or invalid token (only when authorization is enabled)"
@@ -156,6 +165,13 @@ func (h *Handler) updateResourceStatus(w http.ResponseWriter, r *http.Request) {
 	resource, err := h.service.UpdateStatus(r.Context(), resourceUpdateStatusOpts)
 	if err != nil {
 		if writeForbidden(w, err) {
+			return
+		}
+		if errors.Is(err, dto.NotFoundError) {
+			http.Error(w,
+				fmt.Sprintf(`{"error":"Resource not found: %s"}`, resourceUpdateStatusOpts.Name),
+				http.StatusNotFound,
+			)
 			return
 		}
 		if errors.Is(err, dto.ConflictError) {

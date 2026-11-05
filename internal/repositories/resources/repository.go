@@ -108,6 +108,10 @@ func (r *PostgresResourceRepo) Update(ctx context.Context, tx pgx.Tx, opts *dto.
 	row := tx.QueryRow(ctx, q,
 		opts.ShardID, opts.Finalizers, opts.Annotations, opts.Spec, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.DeletionTimestamp, &res.Status); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, dto.NotFoundError
+		}
+
 		return nil, err
 	}
 
@@ -128,6 +132,10 @@ func (r *PostgresResourceRepo) UpdateStatus(ctx context.Context, tx pgx.Tx, opts
 	row := tx.QueryRow(ctx, q,
 		opts.ShardID, opts.Finalizers, opts.Annotations, opts.Status, opts.CurrentVersion, opts.ResourceGroup, opts.Kind, opts.Namespace, opts.Name)
 	if err := row.Scan(&res.CreatedAt, &res.UpdatedAt, &res.ID, &res.ShardID, &res.Version, &res.CurrentVersion, &res.Spec, &res.DeletionTimestamp); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, dto.NotFoundError
+		}
+
 		return nil, err
 	}
 
