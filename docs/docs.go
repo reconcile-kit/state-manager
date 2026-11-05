@@ -340,6 +340,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
                     },
+                    "404": {
+                        "description": "Resource not found\" example={\"error\":\"Resource not found: resource1\"}",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "Invalid input\" example={\"error\":\"Version conflict: resource version not match\"}",
                         "schema": {
@@ -542,6 +548,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Not allowed by token permissions (only when authorization is enabled)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found\" example={\"error\":\"Resource not found: resource1\"}",
                         "schema": {
                             "$ref": "#/definitions/internal_http.ErrorResponse"
                         }
