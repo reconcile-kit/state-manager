@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"fmt"
 	"github.com/reconcile-kit/state-manager/internal/dto"
 	"github.com/redis/go-redis/v9"
 )
@@ -26,7 +27,7 @@ func (rc *RedisClient) Add(ctx context.Context, shardID, messageType string, res
 			"type":           messageType,
 		},
 	}).Err(); err != nil {
-		return err
+		return fmt.Errorf("publish resource event to Redis stream %q (XADD): %w", stream, err)
 	}
 	return nil
 }

@@ -5,8 +5,10 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -15,6 +17,7 @@ import (
 	"github.com/reconcile-kit/state-manager/internal/auth"
 	transport "github.com/reconcile-kit/state-manager/internal/http"
 	_ "github.com/reconcile-kit/state-manager/internal/migrations"
+	"github.com/reconcile-kit/state-manager/internal/redisdiag"
 	"github.com/reconcile-kit/state-manager/internal/repositories/events"
 	"github.com/reconcile-kit/state-manager/internal/repositories/permissions"
 	"github.com/reconcile-kit/state-manager/internal/repositories/resources"
@@ -65,9 +68,17 @@ func main() {
 
 	redisClient := redis.NewClient(opt)
 	defer redisClient.Close()
+	redisLogger := slog.New(slog.NewJSONHandler(os.Stderr, nil)).With("component", "redis", "address", opt.Addr, "db", opt.DB, "tls", opt.TLSConfig != nil)
+	redisClient.AddHook(redisdiag.Hook{Logger: redisLogger})
+	actualOptions := redisClient.Options()
+	redisLogger.Info("checking redis connection", "dial_timeout", actualOptions.DialTimeout.String(), "read_timeout", actualOptions.ReadTimeout.String(), "write_timeout", actualOptions.WriteTimeout.String(), "pool_size", actualOptions.PoolSize)
+	pingStart := time.Now()
 	if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
-		panic(err)
+		stats := redisClient.PoolStats()
+		redisLogger.Error("redis startup check failed", "stage", "startup_ping", "duration_ms", time.Since(pingStart).Milliseconds(), "error", err.Error(), "pool_total", stats.TotalConns, "pool_idle", stats.IdleConns, "pool_timeouts", stats.Timeouts)
+		os.Exit(1)
 	}
+	redisLogger.Info("redis startup check succeeded", "duration_ms", time.Since(pingStart).Milliseconds())
 
 	dbConn, err := sql.Open("pgx", dbURL)
 	if err != nil {
